@@ -1,0 +1,28 @@
+FUNCTION init()
+    Initialize variables
+    RETURN;
+
+FUNCTION update()
+    Update state variables of objects
+    RETURN;
+
+FUNCTION render()
+    Update the DOM display to reflect the updated states
+    RETURN;
+
+PROGRAM Galaga:
+    game = new Game;
+
+    init();
+
+    LOOP
+        IF (gameOver)
+            BREAK;
+
+        listenForUserInput();
+        listenForOtherEvents():
+
+        update();
+        render();
+
+    ENDLOOP

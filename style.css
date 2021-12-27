@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+body {
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(120, 120, 120, 1);
+    font-family: 'Permanent Marker', cursive;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none; 
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#spaceship {
+    width: 55px;
+    height: 55px;
+    position: absolute;
+    bottom: 20px;
+    background-color: red;
+    box-shadow: 1px 1px rgba(20, 20, 20, 1);
+}
