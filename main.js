@@ -7,6 +7,7 @@
 const SCREEN_WIDTH = document.querySelector('#canvas').offsetWidth;
 const SCREEN_HEIGHT = document.querySelector('#canvas').offsetHeight;
 const MOVE_SPEED = 10;
+let globalColor = 'red'; // DEBUG - TEMPORARY 
 
 console.log('Screen width: ',   SCREEN_WIDTH);
 console.log('Screen height: ',   SCREEN_HEIGHT);
@@ -32,11 +33,18 @@ class Game
 
     constructor()
     {
-        this.hero = new Hero(48, 90);
-        this.hero = new Hero(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10));
+        // Next available position for an enemy *****TEMPORARY*****
+        this.openPos = {
+            x: 20,
+            y: 50
+        }
+
+        this.players = [];
+        this.enemies = [];
         this.canvas = document.querySelector('body');
         this.canvasStyle = window.getComputedStyle(canvas);
         console.log(this.canvasStyle.getPropertyValue('background-color'));
+        console.log(this.openPos.x, this.openPos.y);
     }
 
 
@@ -44,115 +52,157 @@ class Game
     {
     }
 
-    move()
+    handleKeyEvent()
     {
+        // A Key
         if (keys[65])
         {
-            if (this.hero.xPos < 0)
+            if (this.players[0].xPos < 0)
             {
-                this.hero.xPos = 1;
+                this.players[0].xPos = 1;
             } else
             {
-                console.log('LEFT');
-                this.hero.xVel -= MOVE_SPEED;
-                this.hero.xPos += this.hero.xVel;
+                this.players[0].xVel -= MOVE_SPEED;
+                this.players[0].xPos += this.players[0].xVel;
             }
         } else
         {
-            this.hero.xVel = 0;
+            this.players[0].xVel = 0;
         }
 
+        // D Key
         if (keys[68])
         {
-            if (this.hero.xPos > SCREEN_WIDTH)
+            if (this.players[0].xPos > SCREEN_WIDTH)
             {
-                this.hero.xPos = SCREEN_WIDTH - 1;
+                this.players[0].xPos = SCREEN_WIDTH - 1;
             } else
             {
-                console.log('RIGHT');
-                this.hero.xVel += MOVE_SPEED;
-                this.hero.xPos += this.hero.xVel;
+                this.players[0].xVel += MOVE_SPEED;
+                this.players[0].xPos += this.players[0].xVel;
             }
         } else
         {
-            this.hero.xVel = 0;
+            this.players[0].xVel = 0;
         }
 
+        // S Key
         if (keys[83])
         {
-            this.hero.yVel -= MOVE_SPEED;
-            this.hero.yPos -= game.hero.yVel;
-            this.hero.sprite.style.top = game.hero.yPos;
+            this.players[0].yVel -= MOVE_SPEED;
+            this.players[0].yPos -= game.players[0].yVel;
+            this.players[0].sprite.style.top = game.players[0].yPos;
         }
 
+        // W Key
         if (keys[87])
         {
-            this.hero.yVel += MOVE_SPEED;
-            this.hero.yPos += game.hero.yVel;
-            this.hero.sprite.style.top = game.hero.yPos;
+            this.players[0].yVel += MOVE_SPEED;
+            this.players[0].yPos += game.players[0].yVel;
+            this.players[0].sprite.style.top = game.players[0].yPos;
         }
 
+        // E Key - Add Enemy (Debug)
+        if (keys[69])
+        {
+            if (this.openPos.x < SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
+            {
+                this.openPos.x += 70;
+                this.addEnemy(new Enemy(this.openPos.x, this.openPos.y, globalColor));
+                console.log('Adding new enemy at position (', this.openPos.x, this.openPos.y + ')');
+            } else if (this.openPos.x >= SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
+            {
+                this.openPos.x = 20;
+                this.openPos.y += 70;
+                this.addEnemy(new Enemy(this.openPos.x, this.openPos.y));
+            } else
+            {
+                this.openPos.x = 20;
+                this.openPos.y = 50;
+                globalColor = 'green';
+            }
+        }
+
+        // P Key - Debug
         if (keys[80])
         {
-            console.log(this.hero.xVel);
+            console.log(this.players[0].xVel);
+        }
+
+        // Space Key
+        if (keys[32])
+        {
+            console.log('FIRE!');
         }
     }
 
 
-    renderInitial()
+    addPlayer(object)
     {
-        console.log("renderInitial");
-        console.log(this.hero);
-        this.canvas.appendChild(this.hero.sprite);
+        this.players.push(object);
+        this.addDomElement(this.players[this.players.length - 1].sprite);
+    }
+
+
+    addEnemy(object)
+    {
+        this.enemies.push(object);
+        this.addDomElement(this.enemies[this.enemies.length - 1].sprite);
+    }
+
+
+    addDomElement(element)
+    {
+        this.canvas.appendChild(element);
     }
 
 
     render()
     {
-        this.hero.updateSprite();
+        for (let i = 0; i < this.players.length; i++)
+        {
+            this.players[i].updateSprite();
+        }
+
+        for (let i = 0; i < this.enemies.length; i++)
+        {
+            this.enemies[i].updateSprite();
+        }
     }
 
 
     quit()
     {
         console.log('Exiting game');
-        running = false;
     }
 
 
     debug()
     {
-        console.log("X: ", this.hero.sprite.style.left)
-        console.log("Y: ", this.hero.sprite.style.top)
+        console.log("X: ", this.players[0].sprite.style.left)
+        console.log("Y: ", this.players[0].sprite.style.top)
         console.log(SCREEN_WIDTH, ', ', SCREEN_HEIGHT)
     }
 
 
-    handleKeyEvent(e)
+}
+
+
+class Obj
+{
+    constructor(xPos, yPos)
     {
-        console.log(e.keyCode);
-        switch(e.code)
-        {
-            case 'KeyA':
-                this.moveLeft();
-                break;
-            case 'KeyD':
-                this.moveRight();
-                break;
-            case 'KeyQ':
-                this.quit();
-                break;
-            case 'KeyP':
-                this.debug();
-        }
+        this.xPos = xPos;
+        this.yPos = yPos;
     }
 }
 
 
-class Ship
+class Ship extends Obj
 {
     constructor(xPos, yPos)
     {
+        super(xPos, yPos);
         this.xPos = xPos;
         this.yPos = yPos;
     }
@@ -173,11 +223,8 @@ class Hero extends Ship
 
     }
 
-
     genSprite()
     {
-        console.log("xPos: ", this.xPos)
-        console.log("yPos: ", this.yPos)
         this.sprite = document.createElement('img');
         this.sprite.src = 'img/ship';
         this.sprite.style.width = 55 + 'px';
@@ -189,7 +236,6 @@ class Hero extends Ship
         this.sprite.style.top = this.yPos + 'px';
         this.sprite.style.left = this.xPos + 'px';
         this.sprite.style.boxShadow = '1px 1px rgba(20, 20, 20, 1)';
-        console.log(this.sprite.style.left);
     }
 
     updateSprite()
@@ -198,10 +244,51 @@ class Hero extends Ship
     }
 }
 
+
 class Enemy extends Ship
 {
-    constructor()
+    constructor(xPos, yPos, color = 'blue')
     {
+        super(xPos, yPos);
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.xVel = 0;
+        this.yVel = 0;
+        this.shipColor = color;
+        this.genSprite();
+    }
+
+    genSprite()
+    {
+        this.sprite = document.createElement('img');
+        this.sprite.src = 'img/ship';
+        this.sprite.style.width = 55 + 'px';
+        this.sprite.style.height = 55 + 'px';
+        this.sprite.style.color = this.shipColor;
+        this.sprite.style.backgroundColor = this.shipColor;
+        this.sprite.alt = 'Ship';
+        this.sprite.style.position = 'absolute';
+        this.sprite.style.top = this.yPos + 'px';
+        this.sprite.style.left = this.xPos + 'px';
+        this.sprite.style.boxShadow = '1px 1px rgba(20, 20, 20, 1)';
+        console.log(this.sprite.style.backgroundColor);
+    }
+
+    updateSprite()
+    {
+        this.sprite.style.left = this.xPos + 'px';
+        this.sprite.style.top = this.yPos + 'px';
+    }
+}
+
+
+class Projectile extends Obj
+{
+    constructor(xPos, yPos)
+    {
+        super(xPos, yPos);
+        this.xPos = xPos;
+        this.yPos = yPos;
     }
 }
 
@@ -214,7 +301,8 @@ class Enemy extends Ship
 
 function init()
 {
-    game.renderInitial();
+    game.addPlayer(new Hero(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10)));
+    game.addEnemy(new Enemy(20, 50, 'red'));
 
     // Event Listeners
 /*
@@ -228,6 +316,7 @@ function init()
     });
 
     document.addEventListener('keyup', function(e) {
+        console.log(e.keyCode);
         delete keys[e.keyCode];
     });
 
@@ -236,7 +325,7 @@ function init()
 
 function gameLoop()
 {
-    game.move();
+    game.handleKeyEvent();
 
     game.update();
     game.render();
