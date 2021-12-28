@@ -48,9 +48,15 @@ class Game
     {
         if (keys[65])
         {
-            this.hero.xVel -= MOVE_SPEED;
-            this.hero.posX += game.hero.xVel;
-            game.hero.sprite.style.left = game.hero.xVel;
+            if (this.hero.xPos < 0)
+            {
+                this.hero.xPos = 1;
+            } else
+            {
+                console.log('LEFT');
+                this.hero.xVel -= MOVE_SPEED;
+                this.hero.xPos += this.hero.xVel;
+            }
         } else
         {
             this.hero.xVel = 0;
@@ -58,9 +64,15 @@ class Game
 
         if (keys[68])
         {
-            this.hero.xVel += MOVE_SPEED;
-            this.hero.posX += game.hero.xVel;
-            game.hero.sprite.style.left = game.hero.xVel;
+            if (this.hero.xPos > SCREEN_WIDTH)
+            {
+                this.hero.xPos = SCREEN_WIDTH - 1;
+            } else
+            {
+                console.log('RIGHT');
+                this.hero.xVel += MOVE_SPEED;
+                this.hero.xPos += this.hero.xVel;
+            }
         } else
         {
             this.hero.xVel = 0;
@@ -69,30 +81,21 @@ class Game
         if (keys[83])
         {
             this.hero.yVel -= MOVE_SPEED;
-            this.hero.posY += game.hero.yVel;
-            game.hero.sprite.style.top = game.hero.posY;
+            this.hero.yPos -= game.hero.yVel;
+            this.hero.sprite.style.top = game.hero.yPos;
         }
 
         if (keys[87])
         {
             this.hero.yVel += MOVE_SPEED;
-            this.hero.posY += game.hero.yVel;
-            game.hero.sprite.style.top = game.hero.posY;
+            this.hero.yPos += game.hero.yVel;
+            this.hero.sprite.style.top = game.hero.yPos;
         }
-    }
 
-
-    moveLeft(e)
-    {
-        this.hero.posX -= 20;
-        this.hero.updateSprite();
-    }
-
-
-    moveRight(e)
-    {
-        this.hero.posX += 20;
-        this.hero.updateSprite();
+        if (keys[80])
+        {
+            console.log(this.hero.xVel);
+        }
     }
 
 
@@ -148,22 +151,22 @@ class Game
 
 class Ship
 {
-    constructor(posX, posY)
+    constructor(xPos, yPos)
     {
-        this.posX = posX;
-        this.posY = posY;
+        this.xPos = xPos;
+        this.yPos = yPos;
     }
 }
 
 
 class Hero extends Ship
 {
-    constructor(posX, posY)
+    constructor(xPos, yPos)
     {
-        super(posX, posY);
+        super(xPos, yPos);
 
-        this.posX = posX;
-        this.posY = posY;
+        this.xPos = xPos;
+        this.yPos = yPos;
         this.genSprite();
         this.xVel = 0;
         this.yVel = 0;
@@ -173,8 +176,8 @@ class Hero extends Ship
 
     genSprite()
     {
-        console.log("posX: ", this.posX)
-        console.log("posY: ", this.posY)
+        console.log("xPos: ", this.xPos)
+        console.log("yPos: ", this.yPos)
         this.sprite = document.createElement('img');
         this.sprite.src = 'img/ship';
         this.sprite.style.width = 55 + 'px';
@@ -183,15 +186,15 @@ class Hero extends Ship
         this.sprite.style.backgroundColor = 'red';
         this.sprite.alt = 'Ship';
         this.sprite.style.position = 'absolute';
-        this.sprite.style.top = this.posY + 'px';
-        this.sprite.style.left = this.posX + 'px';
+        this.sprite.style.top = this.yPos + 'px';
+        this.sprite.style.left = this.xPos + 'px';
         this.sprite.style.boxShadow = '1px 1px rgba(20, 20, 20, 1)';
         console.log(this.sprite.style.left);
     }
 
     updateSprite()
     {
-        this.sprite.style.left = this.posX + 'px';
+        this.sprite.style.left = this.xPos + 'px';
     }
 }
 
@@ -222,12 +225,10 @@ function init()
 
     document.addEventListener('keydown', function(e) {
         keys[e.keyCode] = true;
-        console.log(e.keyCode, 'Down');
     });
 
     document.addEventListener('keyup', function(e) {
         delete keys[e.keyCode];
-        console.log(e.keyCode, 'Up');
     });
 
 //    setInterval(gameLoop, 2000);
