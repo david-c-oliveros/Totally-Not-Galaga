@@ -2,10 +2,17 @@
 /*         Constants         */
 /*****************************/
 
-// const SCREEN_WIDTH = document.querySelector('#width').offsetWidth;
-// const SCREEN_HEIGHT= document.querySelector('#width').offsetHeight;
-const SCREEN_WIDTH = document.querySelector('canvas').offsetWidth;
-const SCREEN_HEIGHT = document.querySelector('canvas').offsetHeight;
+//const SCREEN_WIDTH = document.querySelector('canvas').offsetWidth;
+//const SCREEN_HEIGHT = document.querySelector('canvas').offsetHeight;
+const SCREEN_WIDTH = document.querySelector('canvas').width;
+const SCREEN_HEIGHT = document.querySelector('canvas').height;
+
+// Sprite constants
+const SPRITE_WIDTH = 16;
+const SPRITE_HEIGHT = 16;
+const BORDER_WIDTH = 1;
+const SPACING_WIDTH = 2;
+
 const MOVE_SPEED = 10;
 let globalColor = 'red'; // DEBUG - TEMPORARY 
 
@@ -41,7 +48,9 @@ class Game
 
         this.players = [];
         this.enemies = [];
-        this.canvas = document.querySelector('body');
+        this.canvas = document.querySelector('canvas');
+//        this.canvas = document.querySelector('body');
+        console.log(this.canvas);
         this.canvasStyle = window.getComputedStyle(canvas);
         console.log(this.canvasStyle.getPropertyValue('background-color'));
         console.log(this.openPos.x, this.openPos.y);
@@ -108,12 +117,12 @@ class Game
             if (this.openPos.x < SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x += 70;
-                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'res/enemy.png'), 'enemy');
+                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'images/enemy_ship.png'), 'enemy');
             } else if (this.openPos.x >= SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x = 20;
                 this.openPos.y += 70;
-                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'res/enemy.png'), 'enemy');
+                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'images/enemy_ship.png'), 'enemy');
             } else
             {
                 this.openPos.x = 20;
@@ -193,7 +202,7 @@ class Game
 
 class Obj
 {
-    constructor(xPos, yPos, imgPath = 'res/player.png')
+    constructor(xPos, yPos, imgPath = 'images/player.png')
     {
         this.xPos = xPos;
         this.yPos = yPos;
@@ -204,14 +213,12 @@ class Obj
     {
         this.sprite = document.createElement('img');
         this.sprite.src = this.imgPath;
-        this.sprite.style.width = 55 + 'px';
-        this.sprite.style.height = 55 + 'px';
+//        this.sprite.style.width = 55 + 'px';
+//        this.sprite.style.height = 55 + 'px';
         this.sprite.style.position = 'absolute';
         this.sprite.style.top = this.yPos + 'px';
         this.sprite.style.left = this.xPos + 'px';
-        this.sprite.style.boxShadow = '1px 1px rgba(20, 20, 20, 1)';
-        console.log(this.imgPath);
-        console.log(this.sprite.src);
+//        this.sprite.style.boxShadow = '1px 1px rgba(20, 20, 20, 1)';
     }
 
     updateSprite()
@@ -275,16 +282,10 @@ class Projectile extends Obj
 
 function init()
 {
-    game.addObject(new Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10), 'res/ship.png'), 'player');
-    game.addObject(new Enemy(20, 50, 'res/enemy.png'), 'enemy');
+    game.addObject(new Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10), 'images/player_ship.png'), 'player');
+    game.addObject(new Enemy(20, 50, 'images/enemy_ship.png'), 'enemy');
 
     // Event Listeners
-/*
-    document.addEventListener('keypress', function(e) {
-        game.handleKeyEvent(e)
-    });
-*/
-
     document.addEventListener('keydown', function(e) {
         keys[e.keyCode] = true;
     });
@@ -295,6 +296,20 @@ function init()
     });
 
 //    setInterval(gameLoop, 2000);
+}
+
+function spritePosToImagePos(row, col)
+{
+    return {
+        x: (
+            BORDER_WIDTH +
+                col * (SPACING_WIDTH + SPRITE_WIDTH)
+        ),
+        y: (
+            BORDER_WIDTH +
+            row * (SPACING_WIDTH + SPRITE_HEIGHT)
+        )
+    }
 }
 
 function gameLoop()
@@ -313,6 +328,26 @@ function gameLoop()
 /******************************/
 
 const game = new Game();
+
+//game.addObject(500, 500, 'images/enemy.png');
+const img = new Image();
+img.src = 'images/galaga_general_spritesheet.png';
+let context = game.canvas.getContext('2d');
+let pos = spritePosToImagePos(0, 1);
+console.log(pos.x, pos.y);
+img.onload = function() {
+    game.canvas.width = this.naturalWidth;
+    game.canvas.height = this.naturalHeight;
+    context.drawImage(
+        img,
+        pos.x,
+        pos.y,
+        SPRITE_WIDTH,
+        SPRITE_HEIGHT,
+        100, 100,
+        SPRITE_WIDTH,
+        SPRITE_HEIGHT);
+};
 
 init();
 window.requestAnimationFrame(gameLoop);
