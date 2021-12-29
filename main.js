@@ -54,7 +54,7 @@ class Game
 
     handleKeyEvent()
     {
-        // A Key
+        // A Key - Move left
         if (keys[65])
         {
             if (this.players[0].xPos < 0)
@@ -70,7 +70,7 @@ class Game
             this.players[0].xVel = 0;
         }
 
-        // D Key
+        // D Key - Move right
         if (keys[68])
         {
             if (this.players[0].xPos > SCREEN_WIDTH)
@@ -108,13 +108,13 @@ class Game
             if (this.openPos.x < SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x += 70;
-                this.addEnemy(new Enemy(this.openPos.x, this.openPos.y, globalColor));
+                this.addObject(new Enemy(this.openPos.x, this.openPos.y, globalColor), 'enemy');
                 console.log('Adding new enemy at position (', this.openPos.x, this.openPos.y + ')');
             } else if (this.openPos.x >= SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x = 20;
                 this.openPos.y += 70;
-                this.addEnemy(new Enemy(this.openPos.x, this.openPos.y));
+                this.addObject(new Enemy(this.openPos.x, this.openPos.y), 'enemy');
             } else
             {
                 this.openPos.x = 20;
@@ -129,25 +129,29 @@ class Game
             console.log(this.players[0].xVel);
         }
 
-        // Space Key
+        // Space Key - Fire projectile
         if (keys[32])
         {
-            console.log('FIRE!');
+            this.addObject(new Projectile(this.players[0].xPos, this.players[0].yPos), 'projectile');
         }
     }
 
-
-    addPlayer(object)
+    addObject(object, type)
     {
-        this.players.push(object);
-        this.addDomElement(this.players[this.players.length - 1].sprite);
-    }
-
-
-    addEnemy(object)
-    {
-        this.enemies.push(object);
-        this.addDomElement(this.enemies[this.enemies.length - 1].sprite);
+        switch(type)
+        {
+            case('player'):
+                this.players.push(object);
+                this.addDomElement(this.players[this.players.length - 1].sprite);
+                break;
+            case('enemy'):
+                this.enemies.push(object);
+                this.addDomElement(this.enemies[this.enemies.length - 1].sprite);
+                break;
+            case('projectile'):
+                console.log('Fired projectile');
+                break;
+        }
     }
 
 
@@ -301,8 +305,8 @@ class Projectile extends Obj
 
 function init()
 {
-    game.addPlayer(new Hero(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10)));
-    game.addEnemy(new Enemy(20, 50, 'red'));
+    game.addObject(new Hero(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10)), 'player');
+    game.addObject(new Enemy(20, 50, 'red'), 'enemy');
 
     // Event Listeners
 /*
