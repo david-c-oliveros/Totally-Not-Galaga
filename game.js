@@ -4,8 +4,8 @@
 
 // const SCREEN_WIDTH = document.querySelector('#width').offsetWidth;
 // const SCREEN_HEIGHT= document.querySelector('#width').offsetHeight;
-const SCREEN_WIDTH = document.querySelector('canvas').offsetWidth;
-const SCREEN_HEIGHT = document.querySelector('canvas').offsetHeight;
+const SCREEN_WIDTH = document.querySelector('#canvas').offsetWidth;
+const SCREEN_HEIGHT = document.querySelector('#canvas').offsetHeight;
 const MOVE_SPEED = 10;
 let globalColor = 'red'; // DEBUG - TEMPORARY 
 
@@ -108,12 +108,13 @@ class Game
             if (this.openPos.x < SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x += 70;
-                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'res/enemy.png'), 'enemy');
+                this.addObject(new Enemy(this.openPos.x, this.openPos.y, globalColor), 'enemy');
+                console.log('Adding new enemy at position (', this.openPos.x, this.openPos.y + ')');
             } else if (this.openPos.x >= SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x = 20;
                 this.openPos.y += 70;
-                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'res/enemy.png'), 'enemy');
+                this.addObject(new Enemy(this.openPos.x, this.openPos.y), 'enemy');
             } else
             {
                 this.openPos.x = 20;
@@ -186,133 +187,4 @@ class Game
         console.log("Y: ", this.players[0].sprite.style.top)
         console.log(SCREEN_WIDTH, ', ', SCREEN_HEIGHT)
     }
-
-
 }
-
-
-class Obj
-{
-    constructor(xPos, yPos, imgPath = 'res/player.png')
-    {
-        this.xPos = xPos;
-        this.yPos = yPos;
-        this.imgPath = imgPath;
-    }
-
-    genSprite()
-    {
-        this.sprite = document.createElement('img');
-        this.sprite.src = this.imgPath;
-        this.sprite.style.width = 55 + 'px';
-        this.sprite.style.height = 55 + 'px';
-        this.sprite.style.position = 'absolute';
-        this.sprite.style.top = this.yPos + 'px';
-        this.sprite.style.left = this.xPos + 'px';
-        this.sprite.style.boxShadow = '1px 1px rgba(20, 20, 20, 1)';
-        console.log(this.imgPath);
-        console.log(this.sprite.src);
-    }
-
-    updateSprite()
-    {
-        this.sprite.style.left = this.xPos + 'px';
-    }
-}
-
-
-class Ship extends Obj
-{
-    constructor(xPos, yPos, imgPath)
-    {
-        super(xPos, yPos, imgPath);
-    }
-}
-
-
-class Player extends Ship
-{
-    constructor(xPos, yPos, imgPath)
-    {
-        super(xPos, yPos, imgPath);
-
-        this.genSprite();
-        this.xVel = 0;
-        this.yVel = 0;
-
-    }
-}
-
-
-class Enemy extends Ship
-{
-    constructor(xPos, yPos, imgPath)
-    {
-        super(xPos, yPos, imgPath);
-        this.xVel = 0;
-        this.yVel = 0;
-        this.genSprite();
-    }
-}
-
-
-class Projectile extends Obj
-{
-    constructor(xPos, yPos)
-    {
-        super(xPos, yPos);
-        this.xPos = xPos;
-        this.yPos = yPos;
-    }
-}
-
-
-
-
-/*******************************/
-/*          Functions          */
-/*******************************/
-
-function init()
-{
-    game.addObject(new Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10), 'res/ship.png'), 'player');
-    game.addObject(new Enemy(20, 50, 'res/enemy.png'), 'enemy');
-
-    // Event Listeners
-/*
-    document.addEventListener('keypress', function(e) {
-        game.handleKeyEvent(e)
-    });
-*/
-
-    document.addEventListener('keydown', function(e) {
-        keys[e.keyCode] = true;
-    });
-
-    document.addEventListener('keyup', function(e) {
-        console.log(e.keyCode);
-        delete keys[e.keyCode];
-    });
-
-//    setInterval(gameLoop, 2000);
-}
-
-function gameLoop()
-{
-    game.handleKeyEvent();
-
-    game.update();
-    game.render();
-    window.requestAnimationFrame(gameLoop);
-}
-
-
-
-/******************************/
-/*            Main            */
-/******************************/
-
-const game = new Game();
-
-init();
-window.requestAnimationFrame(gameLoop);

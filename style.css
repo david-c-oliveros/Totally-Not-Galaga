@@ -4,7 +4,7 @@ body {
     display: flex;
     flex-direction: column;
     font-family: 'Permanent Marker', cursive;
-    background-color: rgba(120, 120, 120, 1);
+    background-color: rgba(0, 0, 0, 1);
     overflow: hidden;
     -webkit-touch-callout: none;
     -webkit-user-select: none; 
@@ -15,7 +15,7 @@ body {
 }
 
 #canvas {
-    background: rgba(120, 120, 120, 1);
+    background: rgba(0, 0, 0, 1);
     height: 100%;
     width: 100%;
     display: block;
