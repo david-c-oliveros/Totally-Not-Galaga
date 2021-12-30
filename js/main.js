@@ -50,9 +50,7 @@ class Game
         this.enemies = [];
         this.canvas = document.querySelector('canvas');
 //        this.canvas = document.querySelector('body');
-        console.log(this.canvas);
         this.canvasStyle = window.getComputedStyle(canvas);
-        console.log(this.canvasStyle.getPropertyValue('background-color'));
         console.log(this.openPos.x, this.openPos.y);
     }
 
@@ -117,12 +115,12 @@ class Game
             if (this.openPos.x < SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x += 70;
-                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'images/enemy_ship.png'), 'enemy');
+                this.addObject(new Enemy(this.canvas, this.openPos.x, this.openPos.y, 1, 7, 'images/enemy_ship.png'), 'enemy');
             } else if (this.openPos.x >= SCREEN_WIDTH && this.openPos.y < SCREEN_HEIGHT)
             {
                 this.openPos.x = 20;
                 this.openPos.y += 70;
-                this.addObject(new Enemy(this.openPos.x, this.openPos.y, 'images/enemy_ship.png'), 'enemy');
+                this.addObject(new Enemy(this.canvas, this.openPos.x, this.openPos.y, 1, 7, 'images/enemy_ship.png'), 'enemy');
             } else
             {
                 this.openPos.x = 20;
@@ -150,11 +148,11 @@ class Game
         {
             case('player'):
                 this.players.push(object);
-                this.addDomElement(this.players[this.players.length - 1].sprite);
+//                this.addDomElement(this.players[this.players.length - 1].sprite);
                 break;
             case('enemy'):
                 this.enemies.push(object);
-                this.addDomElement(this.enemies[this.enemies.length - 1].sprite);
+//                this.addDomElement(this.enemies[this.enemies.length - 1].sprite);
                 break;
             case('projectile'):
                 console.log('Fired projectile');
@@ -202,63 +200,62 @@ class Game
 
 class Obj
 {
-    constructor(canvas, xPos, yPos, imgPath = 'images/player.png')
+    constructor(canvas, xPos, yPos, nSpriteSheetRows, nSpriteSheetCols, imgPath = 'images/player.png')
     {
+        this.canvas = canvas;
         this.xPos = xPos;
         this.yPos = yPos;
         this.imgPath = imgPath;
-        this.nRows = nSpriteSheetRows;
-        this.nCols = nSpriteSheetCols;
+        this.nSpriteSheetRows = nSpriteSheetRows;
+        this.nSpriteSheetCols = nSpriteSheetCols;
         this.spriteFrames = [];
     }
 
-    genSprites(this.canvas)
+    genSprites(spriteStartRow, spriteStartCol)
     {
-        for (let i = 0; i < nSpriteSheetRows; i++)
+        for (let i = 0; i < this.nSpriteSheetRows; i++)
         {
-            for (let j = 0; j < nSpriteSheetCols; j++)
+            for (let j = 0; j < this.nSpriteSheetCols; j++)
             {
                 // Add sprite frames to object's sprite array
             }
         }
-        let pos = spritePosToImagePos(4, 3);
-        let sprite = new Sprite(game.canvas, img, pos.x, pos.y, 1, 7, BORDER_WIDTH, SPACING_WIDTH)
-        this.sprite = document.createElement('img');
-        this.sprite.src = this.imgPath;
+        this.pos = spritePosToImagePos(spriteStartRow, spriteStartCol);
+        this.sprite = new Sprite(this.canvas, img, this.pos.x, this.pos.y, this.nSpriteSheetRows, this.nSpriteSheetCols, BORDER_WIDTH, SPACING_WIDTH)
+        const that = this;
+        console.log('Position: ', this.xPos, this.yPos);
+        let self = this;
         img.onload = function() {
-            game.canvas.width = this.naturalWidth;
-            game.canvas.height = this.naturalHeight;
-            sprite.draw(context, pos, 100, 100);
+//            self.canvas.width = this.naturalWidth;
+//            self.canvas.height = this.naturalHeight;
+            self.sprite.draw(context, self.pos, self.xPos, self.yPos);
         };
-        this.sprite.style.position = 'absolute';
-        this.sprite.style.top = this.yPos + 'px';
-        this.sprite.style.left = this.xPos + 'px';
 //        this.sprite.style.boxShadow = '1px 1px rgba(20, 20, 20, 1)';
     }
 
     updateSprite()
     {
-        this.sprite.style.left = this.xPos + 'px';
+        this.sprite.draw(this.canvas.getContext('2d'), this.pos, this.xPos, this.yPos);
     }
 }
 
 
 class Ship extends Obj
 {
-    constructor(xPos, yPos, imgPath)
+    constructor(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames)
     {
-        super(xPos, yPos, imgPath);
+        super(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames);
     }
 }
 
 
 class Player extends Ship
 {
-    constructor(xPos, yPos, imgPath)
+    constructor(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames)
     {
-        super(xPos, yPos, imgPath);
+        super(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames);
 
-        this.genSprites();
+        this.genSprites(0, 0);
         this.xVel = 0;
         this.yVel = 0;
 
@@ -268,21 +265,22 @@ class Player extends Ship
 
 class Enemy extends Ship
 {
-    constructor(xPos, yPos, imgPath)
+    constructor(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames)
     {
-        super(xPos, yPos, imgPath);
+        super(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames);
+
+        this.genSprites(6, 0);
         this.xVel = 0;
         this.yVel = 0;
-        this.genSprites();
     }
 }
 
 
 class Projectile extends Obj
 {
-    constructor(xPos, yPos)
+    constructor(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames)
     {
-        super(xPos, yPos);
+        super(canvas, xPos, yPos, imgPath, nSpriteSheetRows, nSpriteSheetCols, spriteFrames);
         this.xPos = xPos;
         this.yPos = yPos;
     }
@@ -291,7 +289,7 @@ class Projectile extends Obj
 
 class Sprite
 {
-    constructor(canvas, spriteSheet, spriteWidth, spriteHeight, nRows, nCols, borderWidth, spacingWidth)
+    constructor(canvas, spriteSheet, spriteWidth, spriteHeight, startRow, startCol, nRows, nCols, borderWidth, spacingWidth)
     {
         this.canvas = canvas;
         this.spriteSheet = spriteSheet;
@@ -299,6 +297,8 @@ class Sprite
         this.spriteHeight = spriteHeight;
         this.borderWidth = borderWidth;
         this.spacingWidth = spacingWidth;
+        this.startRow = startRow;
+        this.startCol = startCol;
         this.nRows = nRows;
         this.nCols = nCols;
         this.spriteImage = new Image();
@@ -307,7 +307,7 @@ class Sprite
 
     draw(context, sheetPos, xPos, yPos)
     {
-        this.canvas.getContext('2d').drawImage(
+        context.drawImage(
             this.spriteSheet,
             sheetPos.x,
             sheetPos.y,
@@ -316,7 +316,6 @@ class Sprite
             xPos, yPos,
             SPRITE_WIDTH,
             SPRITE_HEIGHT);
-        console.log('Sprite rendered');
     }
 }
 
@@ -329,8 +328,8 @@ class Sprite
 
 function init()
 {
-    game.addObject(new Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10), 'images/player_ship.png'), 'player');
-    game.addObject(new Enemy(20, 50, 'images/enemy_ship.png'), 'enemy');
+    game.addObject(new Player(game.canvas, SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 10), 1, 7, 'images/player_ship.png'), 'player');
+    game.addObject(new Enemy(game.canvas, 20, 50, 'images/enemy_ship.png'), 'enemy');
 
     // Event Listeners
     document.addEventListener('keydown', function(e) {
@@ -381,15 +380,17 @@ const game = new Game();
 const img = new Image();
 img.src = 'images/galaga_general_spritesheet.png';
 let context = game.canvas.getContext('2d');
-let pos = spritePosToImagePos(4, 3);
-let sprite = new Sprite(game.canvas, img, pos.x, pos.y, 1, 7, BORDER_WIDTH, SPACING_WIDTH)
+//let pos = spritePosToImagePos(4, 3);
+//let sprite = new Sprite(game.canvas, img, pos.x, pos.y, 1, 7, BORDER_WIDTH, SPACING_WIDTH)
 //img.onload = sprite.draw(context, pos, 100, 100);
 //img.onload = sprite.draw;
+/*
 img.onload = function() {
     game.canvas.width = this.naturalWidth;
     game.canvas.height = this.naturalHeight;
     sprite.draw(context, pos, 100, 100);
 };
+*/
 
 init();
 window.requestAnimationFrame(gameLoop);
