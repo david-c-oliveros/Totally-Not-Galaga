@@ -202,19 +202,34 @@ class Game
 
 class Obj
 {
-    constructor(xPos, yPos, imgPath = 'images/player.png')
+    constructor(canvas, xPos, yPos, imgPath = 'images/player.png')
     {
         this.xPos = xPos;
         this.yPos = yPos;
         this.imgPath = imgPath;
+        this.nRows = nSpriteSheetRows;
+        this.nCols = nSpriteSheetCols;
+        this.spriteFrames = [];
     }
 
-    genSprite()
+    genSprites(this.canvas)
     {
+        for (let i = 0; i < nSpriteSheetRows; i++)
+        {
+            for (let j = 0; j < nSpriteSheetCols; j++)
+            {
+                // Add sprite frames to object's sprite array
+            }
+        }
+        let pos = spritePosToImagePos(4, 3);
+        let sprite = new Sprite(game.canvas, img, pos.x, pos.y, 1, 7, BORDER_WIDTH, SPACING_WIDTH)
         this.sprite = document.createElement('img');
         this.sprite.src = this.imgPath;
-//        this.sprite.style.width = 55 + 'px';
-//        this.sprite.style.height = 55 + 'px';
+        img.onload = function() {
+            game.canvas.width = this.naturalWidth;
+            game.canvas.height = this.naturalHeight;
+            sprite.draw(context, pos, 100, 100);
+        };
         this.sprite.style.position = 'absolute';
         this.sprite.style.top = this.yPos + 'px';
         this.sprite.style.left = this.xPos + 'px';
@@ -243,7 +258,7 @@ class Player extends Ship
     {
         super(xPos, yPos, imgPath);
 
-        this.genSprite();
+        this.genSprites();
         this.xVel = 0;
         this.yVel = 0;
 
@@ -258,7 +273,7 @@ class Enemy extends Ship
         super(xPos, yPos, imgPath);
         this.xVel = 0;
         this.yVel = 0;
-        this.genSprite();
+        this.genSprites();
     }
 }
 
@@ -270,6 +285,38 @@ class Projectile extends Obj
         super(xPos, yPos);
         this.xPos = xPos;
         this.yPos = yPos;
+    }
+}
+
+
+class Sprite
+{
+    constructor(canvas, spriteSheet, spriteWidth, spriteHeight, nRows, nCols, borderWidth, spacingWidth)
+    {
+        this.canvas = canvas;
+        this.spriteSheet = spriteSheet;
+        this.spriteWidth = spriteWidth;
+        this.spriteHeight = spriteHeight;
+        this.borderWidth = borderWidth;
+        this.spacingWidth = spacingWidth;
+        this.nRows = nRows;
+        this.nCols = nCols;
+        this.spriteImage = new Image();
+        this.spriteImage.src = this.spriteSheet;
+    }
+
+    draw(context, sheetPos, xPos, yPos)
+    {
+        this.canvas.getContext('2d').drawImage(
+            this.spriteSheet,
+            sheetPos.x,
+            sheetPos.y,
+            SPRITE_WIDTH,
+            SPRITE_HEIGHT,
+            xPos, yPos,
+            SPRITE_WIDTH,
+            SPRITE_HEIGHT);
+        console.log('Sprite rendered');
     }
 }
 
@@ -323,6 +370,7 @@ function gameLoop()
 
 
 
+
 /******************************/
 /*            Main            */
 /******************************/
@@ -333,20 +381,14 @@ const game = new Game();
 const img = new Image();
 img.src = 'images/galaga_general_spritesheet.png';
 let context = game.canvas.getContext('2d');
-let pos = spritePosToImagePos(0, 1);
-console.log(pos.x, pos.y);
+let pos = spritePosToImagePos(4, 3);
+let sprite = new Sprite(game.canvas, img, pos.x, pos.y, 1, 7, BORDER_WIDTH, SPACING_WIDTH)
+//img.onload = sprite.draw(context, pos, 100, 100);
+//img.onload = sprite.draw;
 img.onload = function() {
     game.canvas.width = this.naturalWidth;
     game.canvas.height = this.naturalHeight;
-    context.drawImage(
-        img,
-        pos.x,
-        pos.y,
-        SPRITE_WIDTH,
-        SPRITE_HEIGHT,
-        100, 100,
-        SPRITE_WIDTH,
-        SPRITE_HEIGHT);
+    sprite.draw(context, pos, 100, 100);
 };
 
 init();
