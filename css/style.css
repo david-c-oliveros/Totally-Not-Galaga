@@ -15,20 +15,8 @@ body {
 }
 
 canvas {
+    align-self: center;
     background: rgba(0, 0, 0, 1);
-    height: 100%;
-    width: 100%;
+    width: 45%;
     display: block;
 }
-
-/*
-#spaceship {
-    width: 55px;
-    height: 55px;
-    position: absolute;
-    bottom: 20px;
-    left: 100px;
-    background-color: ;
-    box-shadow: 1px 1px rgba(20, 20, 20, 1);
-}
-*/
