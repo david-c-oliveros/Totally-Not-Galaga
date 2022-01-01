@@ -47,11 +47,43 @@ class Game
     {
         this.players = [];
         this.enemies = [];
+//        this.nEnemies = [4, 10, 10, 12, 12];
+        this.nEnemies = [4, 20, 24];
         this.spriteSheets = [];
-        this.projectiles = [];
+        this.playerProjectiles = [];
         this.canvas = document.querySelector('canvas');
         this.context = this.canvas.getContext('2d');
         this.canvasStyle = window.getComputedStyle(canvas);
+    }
+
+
+    generateLevel()
+    {
+        /*********************************/
+        /*        Add Player Ship        */
+        /*********************************/
+        const playerPos = (SCREEN_WIDTH / 2) - (SPRITE_WIDTH / 2);
+        this.addObject(new Player(this.canvas, playerPos, SCREEN_HEIGHT - (SCREEN_HEIGHT / 7), this.spriteSheets[0], 1, 7), 'player');
+
+        /*********************************/
+        /*          Add Enemies          */
+        /*********************************/
+        const spacing = 1.2 * SPRITE_WIDTH * SPRITE_SCALE;
+        console.log("Spacing:", spacing);
+        let startX;
+        let x;
+        let y;
+        const startY = 50;
+        for (let i = 0; i < this.nEnemies.length; i++)
+        {
+            startX = ((SCREEN_WIDTH / 2) - (this.nEnemies[i] / 2) * spacing);
+            for (let j = 0; j < this.nEnemies[i]; j++)
+            {
+                x = startX + (j * spacing);
+                y = startY - (i * spacing);
+                this.addObject(new Enemy(this.canvas, x, y, 100 + (i * spacing), this.spriteSheets[0], 1, 8, i), 'enemy');
+            }
+        }
     }
 
 
@@ -94,7 +126,7 @@ class Game
         }
 
         /*******************************************/
-        /*       Space Key - FIre Projectile       */
+        /*       Space Key - Fire Projectile       */
         /*******************************************/
         if (keys[32] && !this.players[0].coolDown)
         {
@@ -113,26 +145,34 @@ class Game
             {
                 this.players[0].coolDown = false;
             }
-            for (let i = 0; i < this.enemies.length; i++)
-            {
-                this.enemies[i].update();
-            }
-        }
-
-        for (let i = 0; i < game.projectiles.length; i++)
-        {
-            game.projectiles[i].update();
         }
 
         for (let i = 0; i < this.enemies.length; i++)
         {
-            for (let j = 0; j < this.projectiles.length; j++)
+            if (this.enemies[i].currentState === 'entering')
             {
-                if (this.collide(this.projectiles[j], this.enemies[i]))
+                if (this.enemies[i].yPos >= this.enemies[i].restingYPos)
+                {
+                    this.enemies[i].currentState = 'resting';
+                }
+            }
+            this.enemies[i].update();
+        }
+
+        for (let i = 0; i < this.playerProjectiles.length; i++)
+        {
+            this.playerProjectiles[i].update();
+        }
+
+        for (let i = 0; i < this.enemies.length; i++)
+        {
+            for (let j = 0; j < this.playerProjectiles.length; j++)
+            {
+                if (this.collide(this.playerProjectiles[j], this.enemies[i]))
                 {
                     // Handle collision
                     this.removeObject(this.enemies, i);
-//                    console.log("In collide loop");
+                    this.players[0].score += 50;
                 }
             }
         }
@@ -147,14 +187,14 @@ class Game
         }
 
         let firstLeft    = first.xPos;
-        let firstRight   = first.xPos + (SPRITE_WIDTH * SPRITE_SCALE / 2);
+        let firstRight   = first.xPos + (SPRITE_WIDTH * SPRITE_SCALE / 1.5);
         let firstTop     = first.yPos;
-        let firstBottom  = first.yPos + (SPRITE_HEIGHT * SPRITE_SCALE / 2);
+        let firstBottom  = first.yPos + (SPRITE_HEIGHT * SPRITE_SCALE / 1.5);
 
         let secondLeft   = second.xPos;
-        let secondRight  = second.xPos + (SPRITE_WIDTH * SPRITE_SCALE / 2);
+        let secondRight  = second.xPos + (SPRITE_WIDTH * SPRITE_SCALE / 1.5);
         let secondTop    = second.yPos;
-        let secondBottom = second.yPos + (SPRITE_HEIGHT * SPRITE_SCALE / 2);
+        let secondBottom = second.yPos + (SPRITE_HEIGHT * SPRITE_SCALE / 1.5);
 
         return !(firstRight < secondLeft || firstLeft > secondRight || firstTop > secondBottom || firstBottom < secondTop);
     }
@@ -172,7 +212,7 @@ class Game
                 break;
             case('projectile'):
                 console.log('Fired projectile');
-                this.projectiles.push(object);
+                this.playerProjectiles.push(object);
                 break;
         }
     }
@@ -189,6 +229,7 @@ class Game
         this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
         for (let i = 0; i < this.players.length; i++)
         {
+            document.querySelector('#score').innerText = `Score: ${this.players[i].score}`;
             this.players[i].spriteFrames[this.players[i].currentFrame].draw(this.canvas.getContext('2d'), this.players[i].xPos, this.players[i].yPos);
         }
 
@@ -197,9 +238,9 @@ class Game
             this.enemies[i].spriteFrames[this.enemies[i].currentFrame].draw(this.canvas.getContext('2d'), this.enemies[i].xPos, this.enemies[i].yPos);
         }
 
-        for (let i = 0; i < this.projectiles.length; i++)
+        for (let i = 0; i < this.playerProjectiles.length; i++)
         {
-            this.projectiles[i].spriteFrames[0].draw(this.canvas.getContext('2d'), this.projectiles[i].xPos, this.projectiles[i].yPos);
+            this.playerProjectiles[i].spriteFrames[0].draw(this.canvas.getContext('2d'), this.playerProjectiles[i].xPos, this.playerProjectiles[i].yPos);
         }
     }
 
@@ -259,6 +300,9 @@ class Player extends Obj
         this.yVel = 0;
         this.coolDown = false;
         this.currentSpriteFrames = 0;
+
+        this.lives = 3;
+        this.score = 0;
     }
 }
 
@@ -266,27 +310,43 @@ class Player extends Obj
 
 class Enemy extends Obj
 {
-    constructor(canvas, xPos, yPos, spriteSheet, nSpriteSheetRows, nSpriteSheetCols, enemyNum)
+    constructor(canvas, xPos, yPos, restingYPos, spriteSheet, nSpriteSheetRows, nSpriteSheetCols, enemyType)
     {
         super(canvas, xPos, yPos, nSpriteSheetRows, nSpriteSheetCols);
 
-        this.enemyNum = enemyNum + 2;
-        this.genSprites(spriteSheet, this.enemyNum, 0);
-        this.currentState = 'resting';
+        this.enemyType = enemyType;
+        this.genSprites(spriteSheet, this.enemyType + 2, 0);
+        this.currentState = 'entering';
         this.xVel = 0;
         this.yVel = 0;
+        this.restingYPos = restingYPos;
     }
 
     update()
     {
         switch(this.currentState)
         {
-            case('resting'):
-                if (this.currentFrame != this.nSpriteSheetCols - 1)
+            case('entering'):
+                this.yPos += MOVE_SPEED / 2;
+                if (tickCount % 10 === 0)
                 {
-                    this.currentFrame = this.nSpriteSheetCols - 1;
-                } else {
-                    this.currentFrame = this.nSpriteSheetCols - 2;
+                    if (this.currentFrame != this.nSpriteSheetCols - 1)
+                    {
+                        this.currentFrame = this.nSpriteSheetCols - 1;
+                    } else {
+                        this.currentFrame = this.nSpriteSheetCols - 2;
+                    }
+                }
+                break;
+            case('resting'):
+                if (tickCount % 10 === 0)
+                {
+                    if (this.currentFrame != this.nSpriteSheetCols - 1)
+                    {
+                        this.currentFrame = this.nSpriteSheetCols - 1;
+                    } else {
+                        this.currentFrame = this.nSpriteSheetCols - 2;
+                    }
                 }
                 break;
             case('attacking'):
@@ -366,21 +426,7 @@ class Sprite
 
 function init()
 {
-    // First we'll add our elayer spaceship
-    const playerPos = (SCREEN_WIDTH / 2) - (SPRITE_WIDTH / 2);
-    game.addObject(new Player(game.canvas, playerPos, SCREEN_HEIGHT - (SCREEN_HEIGHT / 7), game.spriteSheets[0], 1, 7), 'player');
-
-    // Lets add an assortment of differnet enemies to test the API
-    const nEnemies = 10;
-    const spacing = 1.2;
-    const startPos = (SCREEN_WIDTH / 2) - ((nEnemies / 2) * SPRITE_WIDTH * spacing * SPRITE_SCALE);
-    let eNum;
-    for (let i = 0; i < nEnemies; i++)
-    {
-        eNum = Math.floor(Math.random() * 4);
-        game.addObject(new Enemy(game.canvas, (i * SPRITE_WIDTH * spacing * SPRITE_SCALE) + startPos, 50, game.spriteSheets[0], 1, 8, eNum), 'enemy');
-    }
-
+    game.generateLevel();
     game.update();
 
 
