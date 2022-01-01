@@ -6,7 +6,7 @@ const SCREEN_WIDTH = document.querySelector('canvas').width;
 const SCREEN_HEIGHT = document.querySelector('canvas').height;
 
 // Sprite constants
-const SPRITE_SHEETS = ['images/galaga_general_spritesheet.png', 'galaga_screens_and_text_spritesheet.png'];
+const SPRITE_SHEETS = ['images/galaga_general_spritesheet_alpha.png', 'galaga_screens_and_text_spritesheet.png'];
 const SPRITE_WIDTH = 16;
 const SPRITE_HEIGHT = 16;
 const BORDER_WIDTH = 1;
@@ -47,13 +47,15 @@ class Game
     {
         this.players = [];
         this.enemies = [];
-//        this.nEnemies = [4, 10, 10, 12, 12];
-        this.nEnemies = [4, 20, 24];
+        this.nEnemies = [{type: 1, num:  4, rows: 1},
+                         {type: 3, num: 20, rows: 2},
+                         {type: 4, num: 24, rows: 2}];
+
         this.spriteSheets = [];
         this.playerProjectiles = [];
+        this.enemyProjectiles = [];
         this.canvas = document.querySelector('canvas');
         this.context = this.canvas.getContext('2d');
-        this.canvasStyle = window.getComputedStyle(canvas);
     }
 
 
@@ -69,19 +71,25 @@ class Game
         /*          Add Enemies          */
         /*********************************/
         const spacing = 1.2 * SPRITE_WIDTH * SPRITE_SCALE;
-        console.log("Spacing:", spacing);
         let startX;
         let x;
         let y;
-        const startY = 50;
+        let yRest;
+        const startY = -100;
+        let openRow = 0;
         for (let i = 0; i < this.nEnemies.length; i++)
         {
-            startX = ((SCREEN_WIDTH / 2) - (this.nEnemies[i] / 2) * spacing);
-            for (let j = 0; j < this.nEnemies[i]; j++)
+            for (let j = 0; j < this.nEnemies[i].rows; j++)
             {
-                x = startX + (j * spacing);
-                y = startY - (i * spacing);
-                this.addObject(new Enemy(this.canvas, x, y, 100 + (i * spacing), this.spriteSheets[0], 1, 8, i), 'enemy');
+                startX = ((SCREEN_WIDTH / 2) - (this.nEnemies[i].num / (2 * this.nEnemies[i].rows)) * spacing);
+                yRest = 100 + (openRow * spacing);
+                for (let k = 0; k < this.nEnemies[i].num / this.nEnemies[i].rows; k++)
+                {
+                    x = startX + (k * spacing);
+                    y = startY - (openRow * spacing);
+                    this.addObject(new Enemy(this.canvas, x, y, yRest, this.spriteSheets[0], 1, 8, this.nEnemies[i].type), 'enemy');
+                }
+                openRow++;
             }
         }
     }
@@ -131,7 +139,7 @@ class Game
         if (keys[32] && !this.players[0].coolDown)
         {
             this.addObject(new Projectile(this.canvas, this.players[0].xPos, this.players[0].yPos - (SPRITE_HEIGHT * SPRITE_SCALE),
-                                          this.spriteSheets[0], 1, 1), 'projectile');
+                                          this.spriteSheets[0], 1, 1, 'player'), 'player-projectile');
             this.players[0].coolDown = true;
         }
     }
@@ -147,6 +155,9 @@ class Game
             }
         }
 
+        /********************************/
+        /*        Update Enemies        */
+        /********************************/
         for (let i = 0; i < this.enemies.length; i++)
         {
             if (this.enemies[i].currentState === 'entering')
@@ -156,13 +167,26 @@ class Game
                     this.enemies[i].currentState = 'resting';
                 }
             }
-            this.enemies[i].update();
+            if (this.enemies[i].update())
+            {
+                this.addObject(new Projectile(this.canvas, this.enemies[i].xPos + 3, this.enemies[i].yPos + (SPRITE_HEIGHT * SPRITE_SCALE),
+                                              this.spriteSheets[0], 1, 1, 'enemy'), 'enemy-projectile');
+            }
         }
 
+        /************************************/
+        /*        Update Projectiles        */
+        /************************************/
         for (let i = 0; i < this.playerProjectiles.length; i++)
         {
-            this.playerProjectiles[i].update();
+            this.playerProjectiles[i].update(1);
         }
+
+        for (let i = 0; i < this.enemyProjectiles.length; i++)
+        {
+            this.enemyProjectiles[i].update(-1);
+        }
+
 
         for (let i = 0; i < this.enemies.length; i++)
         {
@@ -172,6 +196,7 @@ class Game
                 {
                     // Handle collision
                     this.removeObject(this.enemies, i);
+                    this.removeObject(this.playerProjectiles, j);
                     this.players[0].score += 50;
                 }
             }
@@ -210,9 +235,11 @@ class Game
             case('enemy'):
                 this.enemies.push(object);
                 break;
-            case('projectile'):
-                console.log('Fired projectile');
+            case('player-projectile'):
                 this.playerProjectiles.push(object);
+                break;
+            case('enemy-projectile'):
+                this.enemyProjectiles.push(object);
                 break;
         }
     }
@@ -241,6 +268,11 @@ class Game
         for (let i = 0; i < this.playerProjectiles.length; i++)
         {
             this.playerProjectiles[i].spriteFrames[0].draw(this.canvas.getContext('2d'), this.playerProjectiles[i].xPos, this.playerProjectiles[i].yPos);
+        }
+
+        for (let i = 0; i < this.enemyProjectiles.length; i++)
+        {
+            this.enemyProjectiles[i].spriteFrames[0].draw(this.canvas.getContext('2d'), this.enemyProjectiles[i].xPos, this.enemyProjectiles[i].yPos);
         }
     }
 
@@ -315,7 +347,7 @@ class Enemy extends Obj
         super(canvas, xPos, yPos, nSpriteSheetRows, nSpriteSheetCols);
 
         this.enemyType = enemyType;
-        this.genSprites(spriteSheet, this.enemyType + 2, 0);
+        this.genSprites(spriteSheet, this.enemyType + 1, 0);
         this.currentState = 'entering';
         this.xVel = 0;
         this.yVel = 0;
@@ -324,6 +356,7 @@ class Enemy extends Obj
 
     update()
     {
+        let fire = false;
         switch(this.currentState)
         {
             case('entering'):
@@ -348,14 +381,16 @@ class Enemy extends Obj
                         this.currentFrame = this.nSpriteSheetCols - 2;
                     }
                 }
+                if (Math.floor(Math.random() * 500) === 0)
+                {
+                    fire = true;
+                }
                 break;
             case('attacking'):
                 break;
         }
-    }
 
-    destroy()
-    {
+        return fire;
     }
 }
 
@@ -363,18 +398,25 @@ class Enemy extends Obj
 
 class Projectile extends Obj
 {
-    constructor(canvas, xPos, yPos, spriteSheet, nSpriteSheetRows, nSpriteSheetCols)
+    constructor(canvas, xPos, yPos, spriteSheet, nSpriteSheetRows, nSpriteSheetCols, type)
     {
         super(canvas, xPos, yPos, nSpriteSheetRows, nSpriteSheetCols);
-        this.genSprites(spriteSheet, 6.5, 17);
+        switch(type)
+        {
+            case('player'):
+                this.genSprites(spriteSheet, 7.5, 17);
+                break;
+            case('enemy'):
+                this.genSprites(spriteSheet, 6.5, 17);
+        }
         this.xPos = xPos;
         this.yPos = yPos;
         this.yVel = 30;
     }
 
-    update()
+    update(direction)
     {
-        this.yPos -= this.yVel;
+        this.yPos -= this.yVel * direction;
     }
 }
 

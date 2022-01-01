@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Press+Start+2P&display=swap');
 body {
     color: red;
     display: flex;
     flex-direction: column;
-    font-family: 'Permanent Marker', cursive;
+    font-family: 'Press Start 2P';
     background-color: rgba(100, 100, 100, 1);
     overflow: hidden;
     -webkit-touch-callout: none;
@@ -23,4 +23,5 @@ canvas {
 
 #score {
     font-size: 32px;
+    align-self: center;
 }
