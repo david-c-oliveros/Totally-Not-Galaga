@@ -45,12 +45,6 @@ class Game
 
     constructor()
     {
-        // Next available position for an enemy *****TEMPORARY*****
-        this.openPos = {
-            x: 20,
-            y: 50
-        }
-
         this.players = [];
         this.enemies = [];
         this.spriteSheets = [];
@@ -104,7 +98,8 @@ class Game
         /*******************************************/
         if (keys[32] && !this.players[0].coolDown)
         {
-            this.addObject(new Projectile(this.canvas, this.players[0].xPos, this.players[0].yPos - (SPRITE_HEIGHT * SPRITE_SCALE), 1, 1), 'projectile');
+            this.addObject(new Projectile(this.canvas, this.players[0].xPos, this.players[0].yPos - (SPRITE_HEIGHT * SPRITE_SCALE),
+                                          this.spriteSheets[0], 1, 1), 'projectile');
             this.players[0].coolDown = true;
         }
     }
@@ -112,8 +107,12 @@ class Game
 
     update()
     {
-        if (tickCount % 5 === 0)
+        if (tickCount % 10 === 0)
         {
+            if (this.players[0].coolDown === true)
+            {
+                this.players[0].coolDown = false;
+            }
             for (let i = 0; i < this.enemies.length; i++)
             {
                 this.enemies[i].update();
@@ -122,8 +121,42 @@ class Game
 
         for (let i = 0; i < game.projectiles.length; i++)
         {
-            game.projectiles[i].yPos -= 10;
+            game.projectiles[i].update();
         }
+
+        for (let i = 0; i < this.enemies.length; i++)
+        {
+            for (let j = 0; j < this.projectiles.length; j++)
+            {
+                if (this.collide(this.projectiles[j], this.enemies[i]))
+                {
+                    // Handle collision
+                    this.removeObject(this.enemies, i);
+//                    console.log("In collide loop");
+                }
+            }
+        }
+    }
+
+
+    collide(first, second)
+    {
+        if (first === undefined || second === undefined)
+        {
+            return false;
+        }
+
+        let firstLeft    = first.xPos;
+        let firstRight   = first.xPos + (SPRITE_WIDTH * SPRITE_SCALE / 2);
+        let firstTop     = first.yPos;
+        let firstBottom  = first.yPos + (SPRITE_HEIGHT * SPRITE_SCALE / 2);
+
+        let secondLeft   = second.xPos;
+        let secondRight  = second.xPos + (SPRITE_WIDTH * SPRITE_SCALE / 2);
+        let secondTop    = second.yPos;
+        let secondBottom = second.yPos + (SPRITE_HEIGHT * SPRITE_SCALE / 2);
+
+        return !(firstRight < secondLeft || firstLeft > secondRight || firstTop > secondBottom || firstBottom < secondTop);
     }
 
 
@@ -145,6 +178,12 @@ class Game
     }
 
 
+    removeObject(array, index)
+    {
+        array.splice(index, 1);
+    }
+
+
     render()
     {
         this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -161,21 +200,6 @@ class Game
         for (let i = 0; i < this.projectiles.length; i++)
         {
             this.projectiles[i].spriteFrames[0].draw(this.canvas.getContext('2d'), this.projectiles[i].xPos, this.projectiles[i].yPos);
-        }
-    }
-
-
-    checkCollision()
-    {
-        for (let i = 0; i < this.enemies.length; i++)
-        {
-            for (let j = 0; j < this.projectiles.length; j++)
-            {
-                if (Math.abs(this.projectiles[j].xPos - this.enemies[i].xPos) < 10 && Math.abs(this.projectiles[j].yPos - this.enemies[i].yPos < 10))
-                {
-                    this.enemies[i].state = 'exploding';
-                }
-            }
         }
     }
 
@@ -215,7 +239,7 @@ class Obj
             for (let j = 0; j < this.nSpriteSheetCols; j++)
             {
                 // Add sprite frames to object's sprite array
-                sheetPos = spritePosToImagePos(spriteStartRow + i, spriteStartCol + j);
+                sheetPos = spritePosToImagePosSmall(spriteStartRow + i, spriteStartCol + j);
                 this.spriteFrames[i + j] = new Sprite(this.canvas, spriteFile, SPRITE_WIDTH, SPRITE_HEIGHT, sheetPos, BORDER_WIDTH, SPACING_WIDTH);
             }
         }
@@ -267,8 +291,6 @@ class Enemy extends Obj
                 break;
             case('attacking'):
                 break;
-            case('exploding'):
-                break;
         }
     }
 
@@ -281,18 +303,18 @@ class Enemy extends Obj
 
 class Projectile extends Obj
 {
-    constructor(canvas, xPos, yPos, nSpriteSheetRows, nSpriteSheetCols)
+    constructor(canvas, xPos, yPos, spriteSheet, nSpriteSheetRows, nSpriteSheetCols)
     {
         super(canvas, xPos, yPos, nSpriteSheetRows, nSpriteSheetCols);
-        this.genSprites(6.5, 17);
+        this.genSprites(spriteSheet, 6.5, 17);
         this.xPos = xPos;
         this.yPos = yPos;
-        this.yVel = 10;
+        this.yVel = 30;
     }
 
     update()
     {
-        this.yPos += this.yVel;
+        this.yPos -= this.yVel;
     }
 }
 
