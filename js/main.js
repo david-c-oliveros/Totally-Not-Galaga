@@ -13,6 +13,9 @@ const BORDER_WIDTH = 1;
 const SPACING_WIDTH = 2;
 const SPRITE_SCALE = 3;
 
+const BIG_SPRITE_WIDTH = 32;
+const BIG_SPRITE_HEIGHT = 32;
+
 const GAME_TICK = 20;
 const MOVE_SPEED = 10;
 
@@ -45,17 +48,29 @@ class Game
 
     constructor()
     {
+        this.canvas = document.querySelector('canvas');
+        this.context = this.canvas.getContext('2d');
         this.players = [];
         this.enemies = [];
         this.nEnemies = [{type: 1, num:  4, rows: 1},
                          {type: 3, num: 20, rows: 2},
                          {type: 4, num: 24, rows: 2}];
 
+        this.renderedEntities = [];
         this.spriteSheets = [];
+        this.loadSpriteSheets();
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
-        this.canvas = document.querySelector('canvas');
-        this.context = this.canvas.getContext('2d');
+    }
+
+
+    loadSpriteSheets()
+    {
+        for (let i = 0; i < SPRITE_SHEETS.length; i++)
+        {
+            this.spriteSheets[i] = new Image();
+            this.spriteSheets[i].src = SPRITE_SHEETS[i];
+        }
     }
 
 
@@ -100,7 +115,7 @@ class Game
         /*********************************/
         /*       A Key - Move Left       */
         /*********************************/
-        if (keys[65])
+        if (keys[65] && !this.players[0].hit)
         {
             if (this.players[0].xPos < 0)
             {
@@ -118,7 +133,7 @@ class Game
         /**********************************/
         /*       D Key - Move Right       */
         /**********************************/
-        if (keys[68])
+        if (keys[68] && !this.players[0].hit)
         {
             if (this.players[0].xPos > SCREEN_WIDTH)
             {
@@ -136,7 +151,7 @@ class Game
         /*******************************************/
         /*       Space Key - Fire Projectile       */
         /*******************************************/
-        if (keys[32] && !this.players[0].coolDown)
+        if (keys[32] && !this.players[0].coolDown && !this.players[0].hit)
         {
             this.addObject(new Projectile(this.canvas, this.players[0].xPos, this.players[0].yPos - (SPRITE_HEIGHT * SPRITE_SCALE),
                                           this.spriteSheets[0], 1, 1, 'player'), 'player-projectile');
@@ -152,6 +167,14 @@ class Game
             if (this.players[0].coolDown === true)
             {
                 this.players[0].coolDown = false;
+            }
+        }
+
+        if (tickCount % 50 === 0)
+        {
+            if (this.players[0].hit)
+            {
+            this.players[0].hit = false;
             }
         }
 
@@ -187,7 +210,22 @@ class Game
             this.enemyProjectiles[i].update(-1);
         }
 
+        /***************************************/
+        /*        Update Other Entities        */
+        /***************************************/
+        for (let i = 0; i < this.renderedEntities.length; i++)
+        {
+            this.renderedEntities[i].update();
+            if (this.renderedEntities[i].destroyed)
+            {
+                this.removeObject(this.renderedEntities, i);
+            }
+        }
 
+
+        /************************************/
+        /*         Check Enemy Hits         */
+        /************************************/
         for (let i = 0; i < this.enemies.length; i++)
         {
             for (let j = 0; j < this.playerProjectiles.length; j++)
@@ -195,9 +233,29 @@ class Game
                 if (this.collide(this.playerProjectiles[j], this.enemies[i]))
                 {
                     // Handle collision
+                    this.explode(this.enemies[i].xPos - SPRITE_WIDTH - 5, this.enemies[i].yPos - SPRITE_HEIGHT - 5, 2);
                     this.removeObject(this.enemies, i);
                     this.removeObject(this.playerProjectiles, j);
                     this.players[0].score += 50;
+                }
+            }
+        }
+
+        /*************************************/
+        /*         Check Player Hits         */
+        /*************************************/
+        for (let i = 0; i < this.players.length; i++)
+        {
+            for (let j = 0; j < this.enemyProjectiles.length; j++)
+            {
+                if (this.collide(this.enemyProjectiles[j], this.players[i]) && !this.players[i].hit)
+                {
+                    // Handle collision
+                    this.removeObject(this.enemyProjectiles, j);
+                    this.players[i].lives--;
+                    this.players[i].hit = true;
+                    this.explode(this.players[i].xPos - SPRITE_WIDTH, this.players[i].yPos - SPRITE_HEIGHT, 1);
+                    console.log("Lives:", this.players[i].lives);
                 }
             }
         }
@@ -241,6 +299,9 @@ class Game
             case('enemy-projectile'):
                 this.enemyProjectiles.push(object);
                 break;
+            case('explosion'):
+                this.renderedEntities.push(object);
+                break;
         }
     }
 
@@ -274,12 +335,24 @@ class Game
         {
             this.enemyProjectiles[i].spriteFrames[0].draw(this.canvas.getContext('2d'), this.enemyProjectiles[i].xPos, this.enemyProjectiles[i].yPos);
         }
+
+        for (let i = 0; i < this.renderedEntities.length; i++)
+        {
+            this.renderedEntities[i].spriteFrames[this.renderedEntities[i].currentFrame].drawBig(this.canvas.getContext('2d'), this.renderedEntities[i].xPos, this.renderedEntities[i].yPos);
+        }
     }
 
 
     quit()
     {
         console.log('Exiting game');
+    }
+
+    explode(xPos, yPos, type)
+    {
+
+        const explosion = new Explosion(this.canvas, xPos, yPos, this.spriteSheets[0], type);
+        this.addObject(explosion, 'explosion');
     }
 
 
@@ -335,6 +408,13 @@ class Player extends Obj
 
         this.lives = 3;
         this.score = 0;
+        this.hit = false;
+        this.explosion = new Explosion(this.canvas, this.xPos, this.yPos, 1, 4);
+    }
+
+
+    die()
+    {
     }
 }
 
@@ -424,8 +504,51 @@ class Projectile extends Obj
 
 class Explosion extends Obj
 {
-    constructor(canvas, xPos, yPos, nSpriteSheetRows, nSpriteSheetCols)
+    constructor(canvas, xPos, yPos, spriteSheet, type)
     {
+        super(canvas, xPos, yPos);
+        if (type === 1)
+        {
+            this.nSpriteSheetRows = 1;
+            this.nSpriteSheetCols = 4;
+            this.genSprites(spriteSheet, 0, 4.2353)
+            this.speed = 4;
+        } else {
+            this.nSpriteSheetRows = 1;
+            this.nSpriteSheetCols = 5;
+            this.genSprites(spriteSheet, 0, 8.48)
+            this.speed = 2;
+        }
+        this.destroyed = false;
+        this.currentFrame = 0;
+    }
+
+    genSprites(spriteFile, spriteStartRow, spriteStartCol)
+    {
+        let sheetPos;
+        for (let i = 0; i < this.nSpriteSheetRows; i++)
+        {
+            for (let j = 0; j < this.nSpriteSheetCols; j++)
+            {
+                // Add sprite frames to object's sprite array
+                sheetPos = spritePosToImagePosMedium(spriteStartRow + i, spriteStartCol + j);
+                this.spriteFrames[i + j] = new Sprite(this.canvas, spriteFile, BIG_SPRITE_WIDTH, BIG_SPRITE_HEIGHT, sheetPos, BORDER_WIDTH, SPACING_WIDTH);
+            }
+        }
+    }
+
+    update()
+    {
+        if (tickCount % this.speed === 0)
+        {
+            if (this.currentFrame === this.spriteFrames.length - 1)
+            {
+                this.currentFrame = 0;
+                this.destroyed = true;
+            } else {
+                this.currentFrame++;
+            }
+        }
     }
 }
 
@@ -457,6 +580,19 @@ class Sprite
             SPRITE_WIDTH * SPRITE_SCALE,
             SPRITE_HEIGHT * SPRITE_SCALE);
     }
+
+    drawBig(context, xPos, yPos)
+    {
+        context.drawImage(
+            this.spriteSheet,
+            this.sheetPos.x,
+            this.sheetPos.y,
+            BIG_SPRITE_WIDTH - 0.5,
+            BIG_SPRITE_HEIGHT,
+            xPos, yPos,
+            BIG_SPRITE_WIDTH * SPRITE_SCALE,
+            BIG_SPRITE_HEIGHT * SPRITE_SCALE);
+    }
 }
 
 
@@ -470,6 +606,9 @@ function init()
 {
     game.generateLevel();
     game.update();
+
+//    const explosion =  new Explosion(game.canvas, 50, 50, game.spriteSheets[0], 1, 4);
+//    game.addObject(explosion, 'explosion');
 
 
     // Event Listeners
@@ -501,11 +640,11 @@ function spritePosToImagePosMedium(row, col)
     return {
         x: (
             BORDER_WIDTH +
-                col * (SPACING_WIDTH + SPRITE_WIDTH)
+                col * (SPACING_WIDTH + BIG_SPRITE_WIDTH)
         ),
         y: (
             BORDER_WIDTH +
-            row * (SPACING_WIDTH + SPRITE_HEIGHT)
+            row * (SPACING_WIDTH + BIG_SPRITE_HEIGHT)
         )
     }
 }
@@ -543,13 +682,7 @@ function gameLoop()
 /******************************/
 
 const game = new Game();
-game.spriteSheets = [];
 
-for (let i = 0; i < SPRITE_SHEETS.length; i++)
-{
-    game.spriteSheets[i] = new Image();
-    game.spriteSheets[i].src = SPRITE_SHEETS[i];
-}
 
 let context = game.canvas.getContext('2d');
 
