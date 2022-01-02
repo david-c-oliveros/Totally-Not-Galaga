@@ -1,0 +1,16 @@
+- MVP
+    - Menu screen
+    - Game over screen
+    - Win screen
+    - Levels
+    - Bonus for remaining lives
+
+- Reach goals
+    - More behaviors
+        - Enemy divebomb
+        - Enemy boss capture player
+
+
+- Bugs
+    - Player respawn time after hit is inconsistent
+    - Enemy cooldown time after player hit is inconsistent
