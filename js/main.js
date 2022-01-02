@@ -18,6 +18,7 @@ const BIG_SPRITE_HEIGHT = 32;
 
 // Audio
 const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
+const AUDIO_VOL = 0.5
 
 const GAME_TICK = 20;
 const MOVE_SPEED = 10;
@@ -63,12 +64,10 @@ class Game
         this.renderedEntities = [];
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
+        this.renderQueue = [];
 
         this.spriteSheets = [];
         this.loadSpriteSheets();
-
-        this.audioExplode = new Audio(AUDIO_FILES[0]);
-        this.audioLaser = new Audio(AUDIO_FILES[1]);
     }
 
 
@@ -161,7 +160,9 @@ class Game
         /*******************************************/
         if (keys[32] && !this.players[0].coolDown && !this.players[0].hit)
         {
-            new Audio(AUDIO_FILES[1]).play();
+            const audio = new Audio(AUDIO_FILES[1]);
+            audio.volume = AUDIO_VOL;
+            audio.play();
             this.addObject(new Projectile(this.canvas, this.players[0].xPos, this.players[0].yPos - (SPRITE_HEIGHT * SPRITE_SCALE),
                                           this.spriteSheets[0], 1, 1, 'player'), 'player-projectile');
             this.players[0].coolDown = true;
@@ -242,7 +243,9 @@ class Game
                 if (this.collide(this.playerProjectiles[j], this.enemies[i]))
                 {
                     // Handle collision
-                    new Audio(AUDIO_FILES[2]).play();
+                    const audio = new Audio(AUDIO_FILES[2]);
+                    audio.volume = AUDIO_VOL * 0.7;
+                    audio.play();
                     if (this.enemies[i].enemyType <= 2)
                     {
                         this.players[0].score += 80;
@@ -267,7 +270,9 @@ class Game
                 if (this.collide(this.enemyProjectiles[j], this.players[i]) && !this.players[i].hit)
                 {
                     // Handle collision
-                    new Audio(AUDIO_FILES[0]).play();
+                    const audio = new Audio(AUDIO_FILES[0]);
+                    audio.volume = AUDIO_VOL;
+                    audio.play();
                     this.removeObject(this.enemyProjectiles, j);
                     this.players[i].lives--;
                     this.players[i].hit = true;
@@ -445,12 +450,6 @@ class Player extends Obj
         this.lives = 3;
         this.score = 0;
         this.hit = false;
-        this.explosion = new Explosion(this.canvas, this.xPos, this.yPos, 1, 4);
-    }
-
-
-    die()
-    {
     }
 }
 
