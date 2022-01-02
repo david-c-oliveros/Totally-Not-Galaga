@@ -6,7 +6,7 @@ const SCREEN_WIDTH = document.querySelector('canvas').width;
 const SCREEN_HEIGHT = document.querySelector('canvas').height;
 
 // Sprite constants
-const SPRITE_SHEETS = ['images/galaga_general_spritesheet_alpha.png', 'galaga_screens_and_text_spritesheet.png'];
+const SPRITE_SHEETS = ['images/galaga_general_spritesheet_alpha.png', 'images/galaga_screens_and_text_spritesheet.png'];
 const SPRITE_WIDTH = 16;
 const SPRITE_HEIGHT = 16;
 const BORDER_WIDTH = 1;
@@ -15,6 +15,9 @@ const SPRITE_SCALE = 3;
 
 const BIG_SPRITE_WIDTH = 32;
 const BIG_SPRITE_HEIGHT = 32;
+
+// Audio
+const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
 
 const GAME_TICK = 20;
 const MOVE_SPEED = 10;
@@ -35,6 +38,7 @@ let t2 = new Date().getTime();
 let elapsedTime = 0;
 let executeTime = 0;
 let tickCount = 0;
+let difficultyScalar = 0.8;
 
 
 
@@ -57,10 +61,14 @@ class Game
                          {type: 4, num: 24, rows: 2}];
 
         this.renderedEntities = [];
-        this.spriteSheets = [];
-        this.loadSpriteSheets();
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
+
+        this.spriteSheets = [];
+        this.loadSpriteSheets();
+
+        this.audioExplode = new Audio(AUDIO_FILES[0]);
+        this.audioLaser = new Audio(AUDIO_FILES[1]);
     }
 
 
@@ -153,6 +161,7 @@ class Game
         /*******************************************/
         if (keys[32] && !this.players[0].coolDown && !this.players[0].hit)
         {
+            new Audio(AUDIO_FILES[1]).play();
             this.addObject(new Projectile(this.canvas, this.players[0].xPos, this.players[0].yPos - (SPRITE_HEIGHT * SPRITE_SCALE),
                                           this.spriteSheets[0], 1, 1, 'player'), 'player-projectile');
             this.players[0].coolDown = true;
@@ -192,7 +201,7 @@ class Game
             }
             if (this.enemies[i].update())
             {
-                this.addObject(new Projectile(this.canvas, this.enemies[i].xPos + 3, this.enemies[i].yPos + (SPRITE_HEIGHT * SPRITE_SCALE),
+                this.addObject(new Projectile(this.canvas, this.enemies[i].xPos + 3, this.enemies[i].yPos + (SPRITE_HEIGHT * SPRITE_SCALE * 0.1),
                                               this.spriteSheets[0], 1, 1, 'enemy'), 'enemy-projectile');
             }
         }
@@ -233,10 +242,17 @@ class Game
                 if (this.collide(this.playerProjectiles[j], this.enemies[i]))
                 {
                     // Handle collision
+                    new Audio(AUDIO_FILES[2]).play();
+                    if (this.enemies[i].enemyType <= 2)
+                    {
+                        this.players[0].score += 80;
+                    } else
+                    {
+                        this.players[0].score += 50;
+                    }
                     this.explode(this.enemies[i].xPos - SPRITE_WIDTH - 5, this.enemies[i].yPos - SPRITE_HEIGHT - 5, 2);
                     this.removeObject(this.enemies, i);
                     this.removeObject(this.playerProjectiles, j);
-                    this.players[0].score += 50;
                 }
             }
         }
@@ -251,12 +267,32 @@ class Game
                 if (this.collide(this.enemyProjectiles[j], this.players[i]) && !this.players[i].hit)
                 {
                     // Handle collision
+                    new Audio(AUDIO_FILES[0]).play();
                     this.removeObject(this.enemyProjectiles, j);
                     this.players[i].lives--;
                     this.players[i].hit = true;
-                    this.explode(this.players[i].xPos - SPRITE_WIDTH, this.players[i].yPos - SPRITE_HEIGHT, 1);
+                    this.explode(this.players[i].xPos - SPRITE_WIDTH - 5, this.players[i].yPos - SPRITE_HEIGHT - 5, 1);
                     console.log("Lives:", this.players[i].lives);
                 }
+            }
+        }
+
+        /********************************************/
+        /*       Remove Offscreen Projectiles       */
+        /********************************************/
+        for (let i = 0; i < this.playerProjectiles.length; i++)
+        {
+            if (this.playerProjectiles[i].yPos < -(SPRITE_HEIGHT + 25))
+            {
+                this.removeObject(this.playerProjectiles, i);
+            }
+        }
+
+        for (let i = 0; i < this.enemyProjectiles.length; i++)
+        {
+            if (this.enemyProjectiles[i].yPos > SCREEN_HEIGHT - (SPRITE_HEIGHT + 5))
+            {
+                this.removeObject(this.enemyProjectiles, i);
             }
         }
     }
@@ -461,7 +497,7 @@ class Enemy extends Obj
                         this.currentFrame = this.nSpriteSheetCols - 2;
                     }
                 }
-                if (Math.floor(Math.random() * 500) === 0)
+                if (Math.floor(Math.random() * 500 * difficultyScalar) === 0)
                 {
                     fire = true;
                 }
