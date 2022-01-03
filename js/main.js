@@ -29,7 +29,12 @@ FONT.load().then((font) => {
 
 const GAME_TICK = 20;
 const MOVE_SPEED = 10;
-const HIT_COOLDOWN = 100;
+
+const COUNTER_VALUES = [15,     // [0] Restart cooldown
+                        10,     // [1] Player fire cooldown
+                        80,    // [2] Player respawn cooldown
+                        120,    // [3] Enemy hit cooldown
+                       ];
 
 
 
@@ -64,11 +69,18 @@ class Game
     {
         this.canvas = document.querySelector('canvas');
         this.context = this.canvas.getContext('2d');
-        this.players = [];
+        this.player;
         this.playerScore = 0;
         this.highScore = 0;
         this.level = 0;
         this.enemies = [];
+        this.counters = [];
+        for (let i = 0; i < COUNTER_VALUES.length; i++)
+        {
+            const c = new Counter(COUNTER_VALUES[i]);
+            this.counters.push(c);
+        }
+
         this.levelGen = [[{type: 1, num:  4, rows: 1}],
 
                          [{type: 1, num:  4, rows: 1},
@@ -87,14 +99,15 @@ class Game
                          {type: 3, num: 28, rows: 2},
                          {type: 4, num: 32, rows: 2}],
 
-
                          [{type: 1, num:  12, rows: 1},
                          {type: 3, num: 32, rows: 2},
                          {type: 4, num: 36, rows: 3}],
 
                          [{type: 1, num:  16, rows: 2},
                          {type: 3, num: 36, rows: 3},
-                         {type: 4, num: 34, rows: 4}]
+                         {type: 4, num: 34, rows: 4}],
+
+                         [{type: 1, num: 80, rows: 8}],
                         ];
         this.explosions = [];
         this.playerProjectiles = [];
@@ -125,7 +138,7 @@ class Game
         /*        Add Player Ship        */
         /*********************************/
         const playerPos = (PLAYER_SCREEN_WIDTH / 2) - (SPRITE_WIDTH / 2);
-        this.addEntity(new Player(this.canvas, playerPos, SCREEN_HEIGHT - (SCREEN_HEIGHT / 7), this.spriteSheets[0], 1, 7), 'player');
+        this.player = new Player(this.canvas, playerPos, SCREEN_HEIGHT - (SCREEN_HEIGHT / 7), this.spriteSheets[0], 1, 7), 'player';
 
         /*********************************/
         /*          Add Enemies          */
@@ -182,6 +195,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
+                        this.counters[0].start();
                         this.playerScore = 0;
                         this.generateLevel();
                     }
@@ -190,6 +204,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
+                        this.counters[0].start();
                         this.level = 0;
                         this.checkHighScore();
                         this.gameState = 'score-card';
@@ -199,6 +214,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
+                        this.counters[0].start();
                         this.gameState = 'menu';
                     }
                     break;
@@ -206,6 +222,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
+                        this.counters[0].start();
                         if (++this.level >= this.levelGen.length)
                         {
                             this.level = 0;
@@ -219,12 +236,11 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
+                        this.counters[0].start();
                         this.checkHighScore();
                         this.gameState = 'menu';
                     }
                     break;
-
-
             }
         }
     }
@@ -235,49 +251,53 @@ class Game
         /*********************************/
         /*       A Key - Move Left       */
         /*********************************/
-        if (keys[65] && !this.players[0].hit)
+        if (keys[65] && !this.player.hit)
         {
-            if (this.players[0].xPos < 0)
+            if (this.player.xPos < 0)
             {
-                this.players[0].xPos = 1;
+                this.player.xPos = 1;
             } else
             {
-                this.players[0].xVel -= MOVE_SPEED;
-                this.players[0].xPos += this.players[0].xVel;
+                this.player.xVel -= MOVE_SPEED;
+                this.player.xPos += this.player.xVel;
             }
         } else
         {
-            this.players[0].xVel = 0;
+            this.player.xVel = 0;
         }
 
         /**********************************/
         /*       D Key - Move Right       */
         /**********************************/
-        if (keys[68] && !this.players[0].hit)
+        if (keys[68] && !this.player.hit)
         {
-            if (this.players[0].xPos > PLAYER_SCREEN_WIDTH)
+            if (this.player.xPos > PLAYER_SCREEN_WIDTH)
             {
-                this.players[0].xPos = PLAYER_SCREEN_WIDTH - 1;
+                this.player.xPos = PLAYER_SCREEN_WIDTH - 1;
             } else
             {
-                this.players[0].xVel += MOVE_SPEED;
-                this.players[0].xPos += this.players[0].xVel;
+                this.player.xVel += MOVE_SPEED;
+                this.player.xPos += this.player.xVel;
             }
         } else
         {
-            this.players[0].xVel = 0;
+            this.player.xVel = 0;
         }
 
         /*******************************************/
         /*       Space Key - Fire Projectile       */
         /*******************************************/
-        if ((keys[32] || keys[96]) && !this.players[0].coolDown && !this.players[0].hit)
+        if ((keys[32] || keys[96]) && !this.player.coolDown && !this.player.hit)
         {
-            this.players[0].coolDown = true;
+            if (!this.player.OP)
+            {
+                this.player.coolDown = true;
+            }
+            this.counters[1].start();
             const audio = new Audio(AUDIO_FILES[1]);
             audio.volume = AUDIO_VOL;
             audio.play();
-            this.addEntity(new Projectile(this.canvas, this.players[0].xPos, this.players[0].yPos - (SPRITE_HEIGHT * SPRITE_SCALE),
+            this.addEntity(new Projectile(this.canvas, this.player.xPos, this.player.yPos - (SPRITE_HEIGHT * SPRITE_SCALE),
                                           this.spriteSheets[0], 1, 1, 'player', playerProjectileSpeed), 'player-projectile');
         }
     }
@@ -285,6 +305,11 @@ class Game
 
     update()
     {
+        for (let i = 0; i < this.counters.length; i++)
+        {
+            this.counters[i].update();
+        }
+
         if (this.gameState === 'playing')
         {
             this.updateGamePlay();
@@ -296,9 +321,10 @@ class Game
 
     updateScreens()
     {
-        if (tickCount % 15 === 0)
+        if (this.counters[0].check())
         {
             this.restartCoolDown = false;
+            this.counters[0].reset();
         }
     }
 
@@ -312,19 +338,27 @@ class Game
             return;
         }
 
+        /********************************/
+        /*        Check Counters        */
+        /********************************/
         if (tickCount % 10 === 0)
+//        if (this.counters[1].check())
         {
-            this.players[0].coolDown = false;
+            this.player.coolDown = false;
+            this.counters[1].reset();
         }
 
-        if (tickCount % HIT_COOLDOWN === 0)
+        if (this.counters[2].check())
         {
-            this.players[0].hit = false;
-            this.players[0].visible = true;
+            this.player.hit = false;
+            this.player.visible = true;
+            this.counters[2].reset();
         }
-        if (tickCount % (HIT_COOLDOWN + 50) === 0)
+
+        if (this.counters[3].check())
         {
             this.enemyReady();
+            this.counters[3].reset();
         }
 
         /********************************/
@@ -407,25 +441,22 @@ class Game
         /*************************************/
         /*         Check Player Hits         */
         /*************************************/
-        for (let i = this.players.length - 1; i >= 0; i--)
+        for (let j = this.enemyProjectiles.length - 1; j >= 0; j--)
         {
-            for (let j = this.enemyProjectiles.length - 1; j >= 0; j--)
+            if (this.collide(this.enemyProjectiles[j], this.player) && this.player.visible)
             {
-                console.log(this.players[i].visible);
-                if (this.collide(this.enemyProjectiles[j], this.players[i]) && this.players[i].visible)
-                {
-                    console.log("Player hit");
-                    // Handle collision
-                    const audio = new Audio(AUDIO_FILES[0]);
-                    audio.volume = AUDIO_VOL;
-                    audio.play();
-                    this.removeEntity(this.enemyProjectiles, j);
-                    this.players[i].lives--;
-                    this.players[i].hit = true;
-                    this.players[i].visible = false;
-                    this.explode(this.players[i].xPos - SPRITE_WIDTH - 5, this.players[i].yPos - SPRITE_HEIGHT - 5, 1);
-                    this.enemyCoolDown();
-                }
+                // Handle collision
+                const audio = new Audio(AUDIO_FILES[0]);
+                audio.volume = AUDIO_VOL;
+                audio.play();
+                this.removeEntity(this.enemyProjectiles, j);
+                this.player.lives--;
+                this.player.hit = true;
+                this.player.visible = false;
+                this.explode(this.player.xPos - SPRITE_WIDTH - 5, this.player.yPos - SPRITE_HEIGHT - 5, 1);
+                this.counters[2].start();
+                this.counters[3].start();
+                this.enemyCoolDown();
             }
         }
 
@@ -448,7 +479,7 @@ class Game
             }
         }
 
-        if (this.players[0].lives < 1)
+        if (this.player.lives < 1)
         {
             this.endGame();
         }
@@ -492,7 +523,7 @@ class Game
     clearCanvas()
     {
         this.enemies.length = 0;
-        this.players.length = 0;
+        this.player.length = null;
         this.explosions.length = 0;
         this.playerProjectiles.length = 0;
         this.enemyProjectiles.length = 0;
@@ -524,9 +555,6 @@ class Game
     {
         switch(type)
         {
-            case('player'):
-                this.players.push(object);
-                break;
             case('enemy'):
                 this.enemies.push(object);
                 break;
@@ -594,21 +622,17 @@ class Game
         /*********************************************/
         /*       Render Remaining Player Lives       */
         /*********************************************/
-        for (let i = 0; i < this.players[0].lives; i++)
+        for (let i = 0; i < this.player.lives; i++)
         {
-            this.players[0].spriteFrames[this.players[0].currentFrameCol].draw(this.canvas.getContext('2d'), SCREEN_WIDTH - (i * SPRITE_WIDTH * SPRITE_SCALE) - 100, SCREEN_HEIGHT - (7 * SPRITE_HEIGHT * SPRITE_SCALE));
+            this.player.spriteFrames[this.player.currentFrameCol].draw(this.canvas.getContext('2d'), SCREEN_WIDTH - (i * SPRITE_WIDTH * SPRITE_SCALE) - 100, SCREEN_HEIGHT - (7 * SPRITE_HEIGHT * SPRITE_SCALE));
         }
 
         /*************************************************************************/
         /*       Render anything that has the 'visible' flag marked 'true'       */
         /*************************************************************************/
-        for (let i = 0; i < this.players.length; i++)
+        if (this.player.visible)
         {
-            if (!this.players[i].visible)
-            {
-                continue;
-            }
-            this.players[i].spriteFrames[this.players[i].currentFrameCol].draw(this.canvas.getContext('2d'), this.players[i].xPos, this.players[i].yPos);
+            this.player.spriteFrames[this.player.currentFrameCol].draw(this.canvas.getContext('2d'), this.player.xPos, this.player.yPos);
         }
 
         for (let i = 0; i < this.enemies.length; i++)
@@ -950,6 +974,46 @@ class Sprite
             xPos, yPos,
             BIG_SPRITE_WIDTH * SPRITE_SCALE,
             BIG_SPRITE_HEIGHT * SPRITE_SCALE);
+    }
+}
+
+
+class Counter
+{
+    constructor(duration)
+    {
+        this.duration = duration;
+        this.ticks = 0;
+        this.running = false;
+    }
+
+    start()
+    {
+        this.running = true;
+    }
+
+    reset()
+    {
+        this.running = false;
+        this.ticks = 0;
+    }
+
+    update()
+    {
+        if (this.running)
+        {
+            this.ticks++;
+        }
+    }
+
+    check()
+    {
+        if (this.ticks >= this.duration)
+        {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
