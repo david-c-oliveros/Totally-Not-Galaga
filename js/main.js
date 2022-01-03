@@ -19,7 +19,7 @@ const BIG_SPRITE_HEIGHT = 32;
 
 // Audio
 const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
-const AUDIO_VOL = 0.3;
+const AUDIO_VOL = 0.02;
 
 // Fonts
 const FONT = new FontFace("'Press Start 2P'", "url(fonts/PressStart2P-Regular.ttf)")
@@ -66,9 +66,14 @@ class Game
         this.context = this.canvas.getContext('2d');
         this.players = [];
         this.playerScore = 0;
+        this.highScore = 0;
         this.level = 0;
         this.enemies = [];
         this.levelGen = [[{type: 1, num:  4, rows: 1},
+                         {type: 3, num: 12, rows: 1},
+                         {type: 4, num: 16, rows: 2}],
+
+                         [{type: 1, num:  4, rows: 1},
                          {type: 3, num: 20, rows: 2},
                          {type: 4, num: 24, rows: 2}],
 
@@ -78,7 +83,16 @@ class Game
 
                          [{type: 1, num:  10, rows: 1},
                          {type: 3, num: 28, rows: 2},
-                         {type: 4, num: 32, rows: 2}]
+                         {type: 4, num: 32, rows: 2}],
+
+
+                         [{type: 1, num:  12, rows: 1},
+                         {type: 3, num: 32, rows: 2},
+                         {type: 4, num: 36, rows: 3}],
+
+                         [{type: 1, num:  16, rows: 2},
+                         {type: 3, num: 36, rows: 3},
+                         {type: 4, num: 34, rows: 4}]
                         ];
         this.explosions = [];
         this.playerProjectiles = [];
@@ -121,7 +135,6 @@ class Game
         let yRest;
         const startY = -100;
         let openRow = 0;
-        console.log(this.level);
         for (let i = 0; i < this.levelGen[this.level].length; i++)
         {
             for (let j = 0; j < this.levelGen[this.level][i].rows; j++)
@@ -162,7 +175,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
-                        this.playerFinalScore = 0;
+                        this.playerScore = 0;
                         this.generateLevel();
                     }
                     break;
@@ -171,6 +184,7 @@ class Game
                     {
                         this.restartCoolDown = true;
                         this.level = 0;
+                        this.checkHighScore();
                         this.gameState = 'score-card';
                     }
                     break;
@@ -198,6 +212,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
+                        this.checkHighScore();
                         this.gameState = 'menu';
                     }
                     break;
@@ -451,6 +466,15 @@ class Game
     }
 
 
+    checkHighScore()
+    {
+        if (this.playerScore > this.highScore)
+        {
+            this.highScore = this.playerScore;
+        }
+    }
+
+
     clearCanvas()
     {
         this.enemies.length = 0;
@@ -516,11 +540,10 @@ class Game
         // Clear Screen For Rendering
         this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-        console.log(this.gameState);
         switch(this.gameState)
         {
             case('menu'):
-                this.renderScreen('Galaga', 50, '#e00000', 0, -5);
+                this.renderScreen('Totally Not Galaga', 50, '#e00000', 0, -5);
                 this.renderScreen('Press Enter to Start', 30, '#f0d000', 0, 1);
                 break;
             case('playing'):
@@ -547,7 +570,7 @@ class Game
     {
         this.renderScreen('HIGH', 35, '#e00000', 14, -6, 35);
         this.renderScreen('SCORE', 35, '#e00000', 16, -5, 35);
-        this.renderScreen('3000', 35, '#ffffff', 15.5, -4, 35);
+        this.renderScreen(`${this.highScore}`, 35, '#ffffff', 15.5, -4, 35);
         this.renderScreen('1UP', 35, '#e00000', 14, 0, 35);
         this.renderScreen(`${this.playerScore}`, 35, '#ffffff', 17, 1, 35);
         /*************************************************************************/
@@ -559,7 +582,6 @@ class Game
             {
                 continue;
             }
-            document.querySelector('#score').innerText = `Score: ${this.players[i].score}`;
             this.players[i].spriteFrames[this.players[i].currentFrame].draw(this.canvas.getContext('2d'), this.players[i].xPos, this.players[i].yPos);
         }
 
