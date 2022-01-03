@@ -1,0 +1,19 @@
+Totally Not Galaga
+Stretch Goals
+
+- Tier 1
+    - Allow player to enter name
+    - Save player's score
+    - Leaderboard screen
+    - Display player's remaining lives
+    - Fix timing bug
+
+- Tier 2
+    - Read level data from file
+    - Implement enemy difficulty (hardest takes 3 hits, easiest takes 1, etc.)
+    - Enemies get more difficult the more levels you complete
+
+- Tier 3
+    - Implement new enemy behavior
+        - Dive bomb
+        - capture player
