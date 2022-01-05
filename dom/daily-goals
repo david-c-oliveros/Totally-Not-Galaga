@@ -1,0 +1,4 @@
+2) Implement title screens in DOM
+3) Display score and remaining lives in DOM
+4) Make game positions releative to the div
+5) Fix Chrome issues

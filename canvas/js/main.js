@@ -19,7 +19,7 @@ const BIG_SPRITE_HEIGHT = 32;
 
 // Audio
 const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
-const AUDIO_VOL = 0.01;
+const AUDIO_VOL = 0.07;
 
 // Fonts
 const FONT = new FontFace("'Press Start 2P'", "url(fonts/PressStart2P-Regular.ttf)")
@@ -594,7 +594,8 @@ class Game
     render()
     {
         // Clear Screen For Rendering
-        this.context.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+//        this.context.clearRect(0, 0, SCREEN_WIDTH | 0, SCREEN_HEIGHT | 0)
+        this.context.clearRect(0, 0, Math.round(SCREEN_WIDTH), Math.round(SCREEN_HEIGHT))
 
         switch(this.gameState)
         {
@@ -967,13 +968,13 @@ class Sprite
         context.globalCompositeOperation = 'source-over';
         context.drawImage(
             this.spriteSheet,
-            this.sheetPos.x,
-            this.sheetPos.y,
-            SPRITE_WIDTH,
-            SPRITE_HEIGHT,
-            xPos, yPos,
-            SPRITE_WIDTH * SPRITE_SCALE,
-            SPRITE_HEIGHT * SPRITE_SCALE);
+            this.sheetPos.x | 0,
+            this.sheetPos.y | 0,
+            SPRITE_WIDTH | 0,
+            SPRITE_HEIGHT | 0,
+            xPos | 0, yPos | 0,
+            SPRITE_WIDTH * SPRITE_SCALE | 0,
+            SPRITE_HEIGHT * SPRITE_SCALE | 0);
     }
 
     drawBig(context, xPos, yPos)
@@ -981,13 +982,22 @@ class Sprite
         context.globalCompositeOperation = 'source-over';
         context.drawImage(
             this.spriteSheet,
-            this.sheetPos.x,
-            this.sheetPos.y,
-            BIG_SPRITE_WIDTH - 0.5,
-            BIG_SPRITE_HEIGHT,
-            xPos, yPos,
-            BIG_SPRITE_WIDTH * SPRITE_SCALE,
-            BIG_SPRITE_HEIGHT * SPRITE_SCALE);
+            Math.round(this.sheetPos.x),
+            Math.round(this.sheetPos.y),
+            Math.round(BIG_SPRITE_WIDTH - 0.5),
+            Math.round(BIG_SPRITE_HEIGHT),
+            Math.round(xPos), Math.round(yPos),
+            Math.round(BIG_SPRITE_WIDTH * SPRITE_SCALE),
+            Math.round(BIG_SPRITE_HEIGHT * SPRITE_SCALE));
+//        context.drawImage(
+//            this.spriteSheet,
+//            this.sheetPos.x | 0,
+//            this.sheetPos.y | 0,
+//            BIG_SPRITE_WIDTH - 0.5 | 0,
+//            BIG_SPRITE_HEIGHT | 0,
+//            xPos | 0, yPos | 0,
+//            BIG_SPRITE_WIDTH * SPRITE_SCALE | 0,
+//            BIG_SPRITE_HEIGHT * SPRITE_SCALE | 0);
     }
 }
 

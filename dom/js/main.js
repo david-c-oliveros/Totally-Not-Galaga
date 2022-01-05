@@ -9,7 +9,6 @@ const PLAYER_SCREEN_WIDTH = SCREEN_WIDTH - 400;
 console.log(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 // Sprite constants
-const SPRITE_SHEETS = ['images/galaga_general_spritesheet_alpha.png', 'images/galaga_screens_and_text_spritesheet.png'];
 const PLAYER_SPRITES = ['./images/player/player_sprite_00.png',
                         './images/player/player_sprite_01.png',
                         './images/player/player_sprite_02.png',
@@ -54,8 +53,16 @@ const ENEMY_SPRITES = [['images/enemy/type-1/enemy_1_sprite_00.png',
                         'images/enemy/type-4/enemy_4_sprite_06.png',
                         'images/enemy/type-4/enemy_4_sprite_07.png']];
 
-const EXPLOSIONS = ['images/explosions/explosion_1_sprite_00.png',
-                    'images/explosions/explosion_2_sprite_00.png'];
+const EXPLOSIONS = [['images/explosion/type-1/explosion_1_sprite_00.png',
+                     'images/explosion/type-1/explosion_1_sprite_01.png',
+                     'images/explosion/type-1/explosion_1_sprite_02.png',
+                     'images/explosion/type-1/explosion_1_sprite_03.png'],
+
+                     ['images/explosion/type-2/explosion_2_sprite_00.png',
+                      'images/explosion/type-2/explosion_2_sprite_01.png',
+                      'images/explosion/type-2/explosion_2_sprite_02.png',
+                      'images/explosion/type-2/explosion_2_sprite_03.png',
+                      'images/explosion/type-2/explosion_2_sprite_04.png']];
 
 const PLAYER_PROJECTILES = 'images/projectiles/player/player_projectile_sprite_00.png';
 const ENEMY_PROJECTILES  = 'images/projectiles/enemy/enemy_projectile_sprite_00.png';
@@ -74,10 +81,10 @@ const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/
 const AUDIO_VOL = 0.07;
 
 // Fonts
-const FONT = new FontFace("'Press Start 2P'", "url(fonts/PressStart2P-Regular.ttf)")
-FONT.load().then((font) => {
-    document.fonts.add(font);
-});
+//const FONT = new FontFace("'Press Start 2P'", "url(fonts/PressStart2P-Regular.ttf)")
+//FONT.load().then((font) => {
+//    document.fonts.add(font);
+//});
 
 const GAME_TICK = 20;
 const MOVE_SPEED = 10;
@@ -120,6 +127,7 @@ class Game
     constructor()
     {
         this.canvas = document.querySelector('#canvas');
+        this.titles = [];
         this.player;
         this.playerScore = 0;
         this.playerOP = true;
@@ -134,12 +142,8 @@ class Game
         }
 
         this.levelGen = [[{type: 1, num:  4, rows: 1},
-                         {type: 3, num: 12, rows: 1},
-                         {type: 4, num: 16, rows: 2}],
-
-                         [{type: 1, num:  4, rows: 1},
-                         {type: 3, num: 12, rows: 1},
-                         {type: 4, num: 16, rows: 2}],
+                          {type: 3, num: 12, rows: 1},
+                          {type: 4, num: 16, rows: 2}],
 
                          [{type: 1, num:  4, rows: 1},
                          {type: 3, num: 20, rows: 2},
@@ -167,20 +171,7 @@ class Game
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
 
-        this.spriteSheets = [];
-        this.loadSpriteSheets();
-
         this.gameState = 'menu';
-    }
-
-
-    loadSpriteSheets()
-    {
-        for (let i = 0; i < SPRITE_SHEETS.length; i++)
-        {
-            this.spriteSheets[i] = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
-            this.spriteSheets[i].src = SPRITE_SHEETS[i];
-        }
     }
 
 
@@ -188,11 +179,20 @@ class Game
     {
         this.gameState = 'playing';
 
+        this.addTitle('fixed', 'HIGH', 35, '#e00000', 14, -6, 35);
+        this.addTitle('fixed', 'SCORE', 35, '#e00000', 15.58, -5, 35);
+        this.addTitle('high-score', `${this.highScore}`, 35, '#ffffff', 15.58, -4, 35);
+        this.addTitle('fixed', '1UP', 35, '#e00000', 14.58, 0, 35);
+        this.addTitle('player-score', `${this.playerScore}`, 35, '#ffffff', 17, 1, 35);
+//                this.renderScreen('Totally Not Galaga', 50, '#e00000', 0, -5);
+//                this.renderScreen(`Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
+
         /*********************************/
         /*        Add Player Ship        */
         /*********************************/
-        const playerPos = (PLAYER_SCREEN_WIDTH / 2) - (SPRITE_WIDTH / 2);
-        this.player = new Player(playerPos, SCREEN_HEIGHT - (SCREEN_HEIGHT / 7), 1, 7);
+        const playerPosX = (PLAYER_SCREEN_WIDTH / 2) - (SPRITE_WIDTH / 2);
+        const playerPosY = SCREEN_HEIGHT - (SCREEN_HEIGHT / 7);
+        this.player = new Player(playerPosX, playerPosY, 1, 7);
 //        this.player = new Player(400, 400, 1, 7);
         this.addEntity(this.player, 'player');
 
@@ -310,9 +310,9 @@ class Game
         /*********************************/
         if (keys[65] && !this.player.hit)
         {
-            if (this.player.xPos < 0)
+            if (this.player.xPos <= 10)
             {
-                this.player.xPos = 1;
+                this.player.xPos = 10;
                 this.player.updateSprites();
             } else
             {
@@ -330,9 +330,9 @@ class Game
         /**********************************/
         if (keys[68] && !this.player.hit)
         {
-            if (this.player.xPos > PLAYER_SCREEN_WIDTH)
+            if (this.player.xPos >= PLAYER_SCREEN_WIDTH - 10)
             {
-                this.player.xPos = PLAYER_SCREEN_WIDTH - 1;
+                this.player.xPos = PLAYER_SCREEN_WIDTH - 10;
                 this.player.updateSprites();
             } else
             {
@@ -370,6 +370,9 @@ class Game
     }
 
 
+    /*****************************/
+    /*        Update Game        */
+    /*****************************/
     update()
     {
         for (let i = 0; i < this.counters.length; i++)
@@ -393,12 +396,14 @@ class Game
             this.restartCoolDown = false;
             this.counters[0].reset();
         }
+        this.updateVariableText();
     }
 
 
     updateGamePlay()
     {
-        if (this.enemies.length === 0)
+        if (this.enemies.length === 0 && this.explosions.length === 0 &&
+            this.enemyProjectiles.length === 0 && this.playerProjectiles.length === 0)
         {
             this.gameState = 'level-success';
             this.clearCanvas();
@@ -550,6 +555,25 @@ class Game
         {
             this.endGame();
         }
+
+        this.updateVariableText();
+    }
+
+
+    updateVariableText()
+    {
+        for (let i = 0; i < this.titles.length; i++)
+        {
+            switch(this.titles[i].label)
+            {
+                case('high-score'):
+                    this.titles[i].value.innerText = this.highScore;
+                    break;
+                case('player-score'):
+                    this.titles[i].value.innerText = this.playerScore;
+                    break;
+            }
+        }
     }
 
 
@@ -636,6 +660,9 @@ class Game
     }
 
 
+    /****************************/
+    /*        Add Entity        */
+    /****************************/
     addEntity(object, type)
     {
         switch(type)
@@ -645,27 +672,31 @@ class Game
                 break;
             case('enemy'):
                 this.enemies.push(object);
-                this.canvas.appendChild(object.spriteFrames[object.currentFrameCol]);
+                this.canvas.appendChild(object.sprite);
+//                this.canvas.appendChild(object.spriteFrames[object.currentFrameCol]);
                 break;
             case('player-projectile'):
                 this.playerProjectiles.push(object);
-                this.canvas.appendChild(object.spriteFrames[0]);
+                this.canvas.appendChild(object.sprite);
                 break;
             case('enemy-projectile'):
                 this.enemyProjectiles.push(object);
-                this.canvas.appendChild(object.spriteFrames[0]);
+                this.canvas.appendChild(object.sprite);
                 break;
             case('explosion'):
                 this.explosions.push(object);
-                this.canvas.appendChild(object.spriteFrames[object.currentFrameCol]);
+                this.canvas.appendChild(object.sprite);
                 break;
         }
     }
 
 
+    /*******************************/
+    /*        Remove Entity        */
+    /*******************************/
     removeEntity(array, index)
     {
-        this.canvas.removeChild(array[index].spriteFrames[array[index].currentFrameCol]);
+        this.canvas.removeChild(array[index].sprite);
         array.splice(index, 1);
     }
 
@@ -699,20 +730,28 @@ class Game
     }
 
 
-    renderScreen(text, size, color, offsetX, offsetY, scalar = 50)
+    addTitle(label, str, size, color, offsetX, offsetY, scalar = 50)
     {
-        this.context.fillStyle = color;
-        this.context.font = `${size}px 'Press Start 2P'`;
-        const textWidth = text.length * size;
-        this.context.fillText(text, (SCREEN_WIDTH / 2) - (textWidth / 2) + (offsetX * scalar), (SCREEN_HEIGHT / 2) + (size / 2) + (offsetY * scalar));
+        const text = document.createElement('div');
+        const textWidth = str.length * size;
+        text.innerText = str;
+        text.style.position = 'absolute';
+        text.style.color = color;
+        text.style.fontSize = size + 'px';
+        text.style.left = (SCREEN_WIDTH / 2) - (textWidth / 2) + (offsetX * scalar) + 'px';
+        text.style.top = (SCREEN_HEIGHT / 2) - (size / 2) + (offsetY * scalar) + 'px';
+        this.titles.push({label: label, value: text});
+        this.canvas.appendChild(this.titles[this.titles.length - 1].value);
     }
 
 
+    /*************************/
+    /*        Explode        */
+    /*************************/
     explode(xPos, yPos, type)
     {
-
-//        const explosion = new Explosion(this.canvas, xPos, yPos, this.spriteSheets[0], type);
-//        this.addEntity(explosion, 'explosion');
+        const explosion = new Explosion(xPos, yPos, type);
+        this.addEntity(explosion, 'explosion');
     }
 }
 
@@ -740,6 +779,7 @@ class Player extends Entity
     {
         super(xPos, yPos, nSpriteSheetRows, nSpriteSheetCols);
 
+        this.entityType = 'Player';
         this.genSprites();
         this.xVel = 0;
         this.yVel = 0;
@@ -786,8 +826,12 @@ class Enemy extends Entity
     {
         super(xPos, yPos, nSpriteSheetRows, nSpriteSheetCols);
 
+        this.entityType = 'Enemy';
+
         this.parentCanvas = document.querySelector('#canvas');
         this.enemyType = enemyType;
+        this.sprite = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
+        this.sprite.style.position = 'absolute';
         this.genSprites(this.enemyType + 1, 0);
         this.updateSprites();
         this.state = 'entering';
@@ -802,6 +846,7 @@ class Enemy extends Entity
         this.moveIncrement = 10;
         this.currentFrameRow = 0;
         this.currentFrameCol = 6;
+        this.sprite.src = this.spriteFrames[this.currentFrameCol];
 
         switch(enemyType)
         {
@@ -825,10 +870,8 @@ class Enemy extends Entity
             {
                 // Add sprite frames to object's sprite array
                 let index = (i * this.nSpriteSheetCols) + j;
-                const sprite = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
-                sprite.src = ENEMY_SPRITES[this.enemyType - 1][index];
-                this.spriteFrames.push(sprite);
-                this.spriteFrames[index].style.position = 'absolute';
+                const url = ENEMY_SPRITES[this.enemyType - 1][index];
+                this.spriteFrames.push(url);
             }
         }
     }
@@ -898,14 +941,11 @@ class Enemy extends Entity
     {
         if (this.currentFrameCol != this.nSpriteSheetCols - 1)
         {
-            const oldFrameCol = this.currentFrameCol;
             this.currentFrameCol = this.nSpriteSheetCols - 1;
-            this.spriteFrames[oldFrameCol].replaceWith(this.spriteFrames[this.currentFrameCol]);
+            this.sprite.src = this.spriteFrames[this.currentFrameCol];
         } else {
-            const oldFrameCol = this.currentFrameCol;
             this.currentFrameCol = this.nSpriteSheetCols - 2;
-            this.spriteFrames[oldFrameCol].replaceWith(this.spriteFrames[this.currentFrameCol]);
-            console.log(this.currentFrameCol)
+            this.sprite.src = this.spriteFrames[this.currentFrameCol];
         }
     }
 
@@ -916,11 +956,13 @@ class Enemy extends Entity
 
     updateSprites()
     {
-        for (let i = 0; i < this.spriteFrames.length; i++)
-        {
-            this.spriteFrames[i].style.top = this.yPos + 'px';
-            this.spriteFrames[i].style.left = this.xPos + 'px';
-        }
+//        for (let i = 0; i < this.spriteFrames.length; i++)
+//        {
+//            this.spriteFrames[i].style.top = this.yPos + 'px';
+//            this.spriteFrames[i].style.left = this.xPos + 'px';
+//        }
+        this.sprite.style.top = this.yPos + 'px';
+        this.sprite.style.left = this.xPos + 'px';
     }
 }
 
@@ -931,31 +973,31 @@ class Projectile extends Entity
     constructor(xPos, yPos, type, yVel)
     {
         super(xPos, yPos);
+        this.sprite = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
+        this.sprite.style.position = 'absolute';
+        this.entityType = 'Projectile';
         this.xPos = xPos;
         this.yPos = yPos;
         this.yVel = yVel;
         this.type = type;
         this.genSprites();
-        this.updateSprites();
         this.currentFrame = 0;
+        this.sprite.src = this.spriteFrames[this.currentFrameCol];
+        this.updateSprites();
     }
 
     genSprites()
     {
         // Add sprite frames to object's sprite array
-        this.spriteFrames[0] = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
         switch(this.type)
         {
             case('enemy'):
-                this.spriteFrames[0].src = ENEMY_PROJECTILES;
-                console.log("new player projectile")
+                this.spriteFrames[0] = ENEMY_PROJECTILES;
                 break;
             case('player'):
-                this.spriteFrames[0].src = PLAYER_PROJECTILES;
-                console.log("new player projectile")
+                this.spriteFrames[0] = PLAYER_PROJECTILES;
                 break;
         }
-        this.spriteFrames[0].style.position = 'absolute';
     }
 
     update(direction)
@@ -966,8 +1008,8 @@ class Projectile extends Entity
 
     updateSprites()
     {
-        this.spriteFrames[0].style.top = this.yPos + 'px';
-        this.spriteFrames[0].style.left = this.xPos + 'px';
+        this.sprite.style.top = this.yPos + 'px';
+        this.sprite.style.left = this.xPos + 'px';
     }
 }
 
@@ -975,24 +1017,30 @@ class Projectile extends Entity
 
 class Explosion extends Entity
 {
-    constructor(xPos, yPos, sprite, type)
+    constructor(xPos, yPos, type)
     {
         super(xPos, yPos);
+        this.entityType = 'Explosion';
+        this.type = type;
         this.spriteFrames = [];
+        this.sprite = new Image(BIG_SPRITE_WIDTH * SPRITE_SCALE, BIG_SPRITE_HEIGHT * SPRITE_SCALE);
+        this.sprite.style.position = 'absolute';
         if (type === 1)
         {
             this.nSpriteSheetRows = 1;
             this.nSpriteSheetCols = 4;
-            this.genSprites(0, 4.2353)
+            this.genSprites();
             this.speed = 4;
         } else {
             this.nSpriteSheetRows = 1;
             this.nSpriteSheetCols = 5;
-            this.genSprites(sprite, 0, 8.48)
+            this.genSprites();
             this.speed = 2;
         }
         this.destroyed = false;
         this.currentFrameCol = 0;
+        this.sprite.src = this.spriteFrames[this.currentFrameCol];
+        this.updateSprites();
     }
 
     genSprites()
@@ -1003,10 +1051,8 @@ class Explosion extends Entity
             {
                 // Add sprite frames to object's sprite array
                 let index = (i * this.nSpriteSheetCols) + j;
-                const sprite = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
-                sprite.src = EXPLOSIONS[this.type - 1][index];
-                this.spriteFrames.push(sprite);
-                this.spriteFrames[index].style.position = 'absolute';
+                const url = EXPLOSIONS[this.type - 1][index];
+                this.spriteFrames.push(url);
             }
         }
     }
@@ -1021,17 +1067,16 @@ class Explosion extends Entity
                 this.destroyed = true;
             } else {
                 this.currentFrameCol++;
+                this.sprite.src = this.spriteFrames[this.currentFrameCol];
             }
         }
+        this.updateSprites();
     }
 
     updateSprites()
     {
-        for (let i = 0; i < this.spriteFrames.length; i++)
-        {
-            this.spriteFrames[i].style.top = this.yPos + 'px';
-            this.spriteFrames[i].style.left = this.xPos + 'px';
-        }
+        this.sprite.style.top = this.yPos + 'px';
+        this.sprite.style.left = this.xPos + 'px';
     }
 }
 
