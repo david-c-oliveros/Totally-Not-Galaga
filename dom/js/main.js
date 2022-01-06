@@ -132,7 +132,7 @@ class Game
         this.titles = [];
         this.player;
         this.playerScore = 0;
-        this.playerOP = false;
+        this.playerOP = true;
         this.highScore = 0;
         this.level = 0;
         this.enemies = [];
@@ -143,41 +143,31 @@ class Game
             this.counters.push(c);
         }
 
-//        this.levelGen = [[{type: 1, num:  0, rows: 1},
-//                          {type: 3, num: 10, rows: 1},
-//                          {type: 4, num: 20, rows: 2}],
-//
-//                         [{type: 1, num:  4, rows: 1},
-//                         {type: 3, num: 20, rows: 2},
-//                         {type: 4, num: 24, rows: 2}],
-//
-//                         [{type: 1, num:  8, rows: 1},
-//                         {type: 3, num: 24, rows: 2},
-//                         {type: 4, num: 28, rows: 2}],
-//
-//                         [{type: 1, num:  10, rows: 1},
-//                         {type: 3, num: 28, rows: 2},
-//                         {type: 4, num: 32, rows: 2}],
-//
-//                         [{type: 1, num:  12, rows: 1},
-//                         {type: 3, num: 32, rows: 2},
-//                         {type: 4, num: 36, rows: 3}],
-//
-//                         [{type: 1, num:  16, rows: 2},
-//                         {type: 3, num: 36, rows: 3},
-//                         {type: 4, num: 34, rows: 4}],
-//                        ];
-//        this.levelGen = JSON.parse('gamelevels/g1.json');
-        const leveltext = '';
-        document.getElementById('inputfile').addEventListener('change', function()
-            {
-                this.levelfile = new FileReader();
-                this.levelfile.onload = function () {
-                    this.levelText = levelfile.result;
-                }
-                this.levelfile.readAsText('gamelevels/g1.json');
-            });
-        this.levelGen =  JSON.parse(leveltext);
+        this.levelGen = [[{type: 1, num:  0, rows: 1},
+                          {type: 3, num: 10, rows: 1},
+                          {type: 4, num: 20, rows: 2}],
+
+                         [{type: 1, num:  4, rows: 1},
+                          {type: 3, num: 20, rows: 2},
+                          {type: 4, num: 24, rows: 2}],
+
+                         [{type: 1, num:  8, rows: 1},
+                          {type: 3, num: 24, rows: 2},
+                          {type: 4, num: 28, rows: 2}],
+
+                         [{type: 1, num: 10, rows: 1},
+                          {type: 3, num: 28, rows: 2},
+                          {type: 4, num: 32, rows: 2}],
+
+                         [{type: 1, num: 12, rows: 1},
+                          {type: 3, num: 32, rows: 2},
+                          {type: 4, num: 36, rows: 3}],
+
+                         [{type: 1, num: 16, rows: 2},
+                          {type: 3, num: 36, rows: 3},
+                          {type: 4, num: 34, rows: 4}]
+                        ];
+
         this.explosions = [];
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
@@ -331,7 +321,7 @@ class Game
                         this.counters[0].start();
                         this.checkHighScore();
                         this.clearCanvas();
-                        this.addTitle('final-score' `Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
+                        this.addTitle('final-score', `Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
                         this.gameState = 'score-card';
                     }
                     break;
