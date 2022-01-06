@@ -82,12 +82,6 @@ const BIG_SPRITE_HEIGHT = 32;
 const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
 const AUDIO_VOL = 0.07;
 
-// Fonts
-//const FONT = new FontFace("'Press Start 2P'", "url(fonts/PressStart2P-Regular.ttf)")
-//FONT.load().then((font) => {
-//    document.fonts.add(font);
-//});
-
 const GAME_TICK = 20;
 const MOVE_SPEED = 10;
 
@@ -132,7 +126,7 @@ class Game
         this.titles = [];
         this.player;
         this.playerScore = 0;
-        this.playerOP = true;
+        this.playerOP = false;
         this.highScore = 0;
         this.level = 0;
         this.enemies = [];
@@ -187,16 +181,12 @@ class Game
         this.addTitle('fixed', '1UP', 35, '#e00000', 14.58, 0, 35);
         this.addTitle('player-score', `${this.playerScore}`, 35, '#ffffff', 17, 1, TITLE_POSITION_SCALAR);
 
-//                this.renderScreen('Totally Not Galaga', 50, '#e00000', 0, -5);
-//                this.renderScreen(`Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
-
         /*********************************/
         /*        Add Player Ship        */
         /*********************************/
         const playerPosX = (PLAYER_SCREEN_WIDTH / 2) - (SPRITE_WIDTH / 2);
         const playerPosY = SCREEN_HEIGHT - (SCREEN_HEIGHT / 7);
         this.player = new Player(playerPosX, playerPosY, 1, 7);
-//        this.player = new Player(400, 400, 1, 7);
         this.addEntity(this.player, 'player');
 
         /********************************************/
@@ -443,7 +433,6 @@ class Game
         /*        Check Counters        */
         /********************************/
         if (tickCount % 10 === 0)
-//        if (this.counters[1].check())
         {
             this.player.coolDown = false;
             this.counters[1].reset();
@@ -453,7 +442,6 @@ class Game
         {
             this.canvas.appendChild(this.player.spriteFrames[this.player.currentFrameCol]);
             this.player.hit = false;
-            this.player.visible = true;
             this.counters[2].reset();
         }
 
@@ -545,7 +533,7 @@ class Game
         /*************************************/
         for (let j = this.enemyProjectiles.length - 1; j >= 0; j--)
         {
-            if (this.collide(this.enemyProjectiles[j], this.player) && this.player.visible)
+            if (this.collide(this.enemyProjectiles[j], this.player) && !this.player.hit)
             {
                 // Handle collision
                 const audio = new Audio(AUDIO_FILES[0]);
@@ -556,7 +544,6 @@ class Game
                 this.canvas.removeChild(this.playerLives[this.playerLives.length - 1]);
                 this.playerLives.pop();
                 this.player.hit = true;
-                this.player.visible = false;
                 this.canvas.removeChild(this.player.spriteFrames[this.player.currentFrameCol]);
                 this.explode(this.player.xPos - SPRITE_WIDTH - 5, this.player.yPos - SPRITE_HEIGHT - 5, 1);
                 this.counters[2].start();
@@ -731,7 +718,6 @@ class Game
             case('enemy'):
                 this.enemies.push(object);
                 this.canvas.appendChild(object.sprite);
-//                this.canvas.appendChild(object.spriteFrames[object.currentFrameCol]);
                 break;
             case('player-projectile'):
                 this.playerProjectiles.push(object);
@@ -759,35 +745,9 @@ class Game
     }
 
 
-    render()
-    {
-        // Clear Screen For Rendering
-
-        switch(this.gameState)
-        {
-            case('menu'):
-//                this.renderScreen('Totally Not Galaga', 50, '#e00000', 0, -5);
-//                this.renderScreen('Press Enter to Start', 30, '#f0d000', 0, 1);
-                break;
-            case('playing'):
-                break;
-            case('level-success'):
-//                this.renderScreen('You Beat the Level', 40, '#e00000', 0, 0);
-                break;
-            case('win'):
-//                this.renderScreen('You Win!', 40, '#e00000', 0, 0);
-                break;
-            case('game-over'):
-//                this.renderScreen('Game Over', 40, '#e00000', 0, 0);
-                break;
-            case('score-card'):
-//                this.renderScreen(`Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
-                break;
-        }
-
-    }
-
-
+    /***************************/
+    /*        Add Title        */
+    /***************************/
     addTitle(label, str, size, color, offsetX, offsetY, scalar = 1.428 * TITLE_POSITION_SCALAR)
     {
         const text = document.createElement('div');
@@ -825,7 +785,6 @@ class Entity
         this.nSpriteSheetCols = nSpriteSheetCols;
         this.spriteFrames = [];
         this.currentFrameCol = 0;
-        this.visible = true;
     }
 }
 
@@ -895,8 +854,6 @@ class Enemy extends Entity
         this.state = 'entering';
         this.hit = false;
         this.coolDown = false;
-        this.xVel = 0;
-        this.yVel = 0;
         this.restingYPos = restingYPos;
         this.startX = xPos;
         this.direction = -1;
@@ -1208,34 +1165,6 @@ function init()
     document.addEventListener('keyup', function(e) {
         delete keys[e.keyCode];
     });
-}
-
-function spritePosToImagePosSmall(row, col)
-{
-    return {
-        x: (
-            BORDER_WIDTH +
-                col * (SPACING_WIDTH + SPRITE_WIDTH)
-        ),
-        y: (
-            BORDER_WIDTH +
-            row * (SPACING_WIDTH + SPRITE_HEIGHT)
-        )
-    }
-}
-
-function spritePosToImagePosMedium(row, col)
-{
-    return {
-        x: (
-            BORDER_WIDTH +
-                col * (SPACING_WIDTH + BIG_SPRITE_WIDTH)
-        ),
-        y: (
-            BORDER_WIDTH +
-            row * (SPACING_WIDTH + BIG_SPRITE_HEIGHT)
-        )
-    }
 }
 
 function inputLoop()
