@@ -1,4 +1,18 @@
-2) Implement title screens in DOM
-3) Display score and remaining lives in DOM
-4) Make game positions releative to the div
-5) Fix Chrome issues
+- MVP
+    3) Make div container clip objects that leave the frame
+
+
+- Stretch goals
+    1) Add functionality for program to read level data from a file
+
+    2) Add functionality for game to write and read player high scores to and from a file
+
+
+
+
+- Stretchier goals
+    1) Add functionality for player to enter their name
+    2) Leaderboard screen
+    3) Fix Chrome formatting issues
+    4) Fix Firefox crashing issue
+    5) Tidy up the codebase

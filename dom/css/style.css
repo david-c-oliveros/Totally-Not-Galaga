@@ -15,17 +15,13 @@ body {
 }
 
 #canvas {
+    overflow: hidden;
     align-self: center;
     position: absolute;
     background: rgba(0, 0, 0, 1);
     width: 1400px;
-    max-width: 1400px;
     height: 900px;
+    max-width: 1400px;
     max-height: 900px;
     display: block;
-}
-
-#score {
-    font-size: 32px;
-    align-self: center;
 }

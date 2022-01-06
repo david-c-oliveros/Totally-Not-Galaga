@@ -2,11 +2,13 @@
 /*         Constants         */
 /*****************************/
 
-const SCREEN_WIDTH = document.querySelector('#canvas').clientWidth;
-const SCREEN_HEIGHT = document.querySelector('#canvas').clientHeight;
+const SCREEN_WIDTH = 1400;
+const SCREEN_HEIGHT = 900; 
 const PLAYER_SCREEN_WIDTH = SCREEN_WIDTH - 400;
 
-console.log(SCREEN_WIDTH, SCREEN_HEIGHT);
+const TITLE_POSITION_SCALAR = 35;
+
+console.log("Screen dimensions:", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 // Sprite constants
 const PLAYER_SPRITES = ['./images/player/player_sprite_00.png',
@@ -26,15 +28,15 @@ const ENEMY_SPRITES = [['images/enemy/type-1/enemy_1_sprite_00.png',
                         'images/enemy/type-1/enemy_1_sprite_06.png',
                         'images/enemy/type-1/enemy_1_sprite_07.png'],
 
-                       ['images/enemy/type-2/enemy_2_sprite_00.png',
-                        'images/enemy/type-2/enemy_2_sprite_01.png',
-                        'images/enemy/type-2/enemy_2_sprite_02.png',
-                        'images/enemy/type-2/enemy_2_sprite_03.png',
-                        'images/enemy/type-2/enemy_2_sprite_04.png',
-                        'images/enemy/type-2/enemy_2_sprite_05.png',
-                        'images/enemy/type-2/enemy_2_sprite_06.png',
-                        'images/enemy/type-2/enemy_2_sprite_07.png'],
- 
+                       ['images/enemy/type-1/enemy_1_sprite_08.png',
+                        'images/enemy/type-1/enemy_1_sprite_09.png',
+                        'images/enemy/type-1/enemy_1_sprite_10.png',
+                        'images/enemy/type-1/enemy_1_sprite_11.png',
+                        'images/enemy/type-1/enemy_1_sprite_12.png',
+                        'images/enemy/type-1/enemy_1_sprite_13.png',
+                        'images/enemy/type-1/enemy_1_sprite_14.png',
+                        'images/enemy/type-1/enemy_1_sprite_15.png'],
+
                        ['images/enemy/type-3/enemy_3_sprite_00.png',
                         'images/enemy/type-3/enemy_3_sprite_01.png',
                         'images/enemy/type-3/enemy_3_sprite_02.png',
@@ -130,7 +132,7 @@ class Game
         this.titles = [];
         this.player;
         this.playerScore = 0;
-        this.playerOP = true;
+        this.playerOP = false;
         this.highScore = 0;
         this.level = 0;
         this.enemies = [];
@@ -141,35 +143,45 @@ class Game
             this.counters.push(c);
         }
 
-        this.levelGen = [[{type: 1, num:  4, rows: 1},
-                          {type: 3, num: 12, rows: 1},
-                          {type: 4, num: 16, rows: 2}],
-
-                         [{type: 1, num:  4, rows: 1},
-                         {type: 3, num: 20, rows: 2},
-                         {type: 4, num: 24, rows: 2}],
-
-                         [{type: 1, num:  8, rows: 1},
-                         {type: 3, num: 24, rows: 2},
-                         {type: 4, num: 28, rows: 2}],
-
-                         [{type: 1, num:  10, rows: 1},
-                         {type: 3, num: 28, rows: 2},
-                         {type: 4, num: 32, rows: 2}],
-
-                         [{type: 1, num:  12, rows: 1},
-                         {type: 3, num: 32, rows: 2},
-                         {type: 4, num: 36, rows: 3}],
-
-                         [{type: 1, num:  16, rows: 2},
-                         {type: 3, num: 36, rows: 3},
-                         {type: 4, num: 34, rows: 4}],
-
-                         [{type: 1, num: 80, rows: 8}],
-                        ];
+//        this.levelGen = [[{type: 1, num:  0, rows: 1},
+//                          {type: 3, num: 10, rows: 1},
+//                          {type: 4, num: 20, rows: 2}],
+//
+//                         [{type: 1, num:  4, rows: 1},
+//                         {type: 3, num: 20, rows: 2},
+//                         {type: 4, num: 24, rows: 2}],
+//
+//                         [{type: 1, num:  8, rows: 1},
+//                         {type: 3, num: 24, rows: 2},
+//                         {type: 4, num: 28, rows: 2}],
+//
+//                         [{type: 1, num:  10, rows: 1},
+//                         {type: 3, num: 28, rows: 2},
+//                         {type: 4, num: 32, rows: 2}],
+//
+//                         [{type: 1, num:  12, rows: 1},
+//                         {type: 3, num: 32, rows: 2},
+//                         {type: 4, num: 36, rows: 3}],
+//
+//                         [{type: 1, num:  16, rows: 2},
+//                         {type: 3, num: 36, rows: 3},
+//                         {type: 4, num: 34, rows: 4}],
+//                        ];
+//        this.levelGen = JSON.parse('gamelevels/g1.json');
+        const leveltext = '';
+        document.getElementById('inputfile').addEventListener('change', function()
+            {
+                this.levelfile = new FileReader();
+                this.levelfile.onload = function () {
+                    this.levelText = levelfile.result;
+                }
+                this.levelfile.readAsText('gamelevels/g1.json');
+            });
+        this.levelGen =  JSON.parse(leveltext);
         this.explosions = [];
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
+        this.playerLives = [];
 
         this.gameState = 'menu';
     }
@@ -179,11 +191,12 @@ class Game
     {
         this.gameState = 'playing';
 
-        this.addTitle('fixed', 'HIGH', 35, '#e00000', 14, -6, 35);
+        this.addTitle('fixed', 'HIGH', 35, '#e00000', 14, -6, TITLE_POSITION_SCALAR);
         this.addTitle('fixed', 'SCORE', 35, '#e00000', 15.58, -5, 35);
-        this.addTitle('high-score', `${this.highScore}`, 35, '#ffffff', 15.58, -4, 35);
+        this.addTitle('high-score', `${this.highScore}`, 35, '#ffffff', 15.58, -4, TITLE_POSITION_SCALAR);
         this.addTitle('fixed', '1UP', 35, '#e00000', 14.58, 0, 35);
-        this.addTitle('player-score', `${this.playerScore}`, 35, '#ffffff', 17, 1, 35);
+        this.addTitle('player-score', `${this.playerScore}`, 35, '#ffffff', 17, 1, TITLE_POSITION_SCALAR);
+
 //                this.renderScreen('Totally Not Galaga', 50, '#e00000', 0, -5);
 //                this.renderScreen(`Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
 
@@ -195,6 +208,20 @@ class Game
         this.player = new Player(playerPosX, playerPosY, 1, 7);
 //        this.player = new Player(400, 400, 1, 7);
         this.addEntity(this.player, 'player');
+
+        /********************************************/
+        /*        Add Player Lives Remaining        */
+        /********************************************/
+        for (let i = 0; i < this.player.lives; i++)
+        {
+            const life = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
+            life.src = PLAYER_SPRITES[6];
+            life.style.position = 'absolute';
+            life.style.left = SCREEN_WIDTH - (i * SPRITE_WIDTH * SPRITE_SCALE) - 100 + 'px';
+            life.style.top = SCREEN_HEIGHT - (7 * SPRITE_HEIGHT * SPRITE_SCALE) + 'px';
+            this.playerLives.push(life);
+            this.canvas.appendChild(this.playerLives[this.playerLives.length - 1]);
+        }
 
         /*********************************/
         /*          Add Enemies          */
@@ -253,6 +280,7 @@ class Game
                         this.restartCoolDown = true;
                         this.counters[0].start();
                         this.playerScore = 0;
+                        this.clearCanvas();
                         this.generateLevel();
                     }
                     break;
@@ -263,6 +291,8 @@ class Game
                         this.counters[0].start();
                         this.level = 0;
                         this.checkHighScore();
+                        this.clearCanvas();
+                        this.addTitle('final-score', `Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
                         this.gameState = 'score-card';
                     }
                     break;
@@ -271,6 +301,9 @@ class Game
                     {
                         this.restartCoolDown = true;
                         this.counters[0].start();
+                        this.clearCanvas();
+                        this.addTitle('fixed', 'Totally Not Galaga', 50, '#e00000', 0, -5);
+                        this.addTitle('fixed', 'Press Enter to Start', 30, '#f0d000', 0, 1);
                         this.gameState = 'menu';
                     }
                     break;
@@ -283,7 +316,10 @@ class Game
                         {
                             this.level = 0;
                             this.gameState = 'win';
+                            this.clearCanvas();
+                            this.addTitle('fixed', 'You Win!', 40, '#e00000', 0, 0);
                         } else {
+                            this.clearCanvas();
                             this.generateLevel();
                         }
                     }
@@ -294,7 +330,9 @@ class Game
                         this.restartCoolDown = true;
                         this.counters[0].start();
                         this.checkHighScore();
-                        this.gameState = 'menu';
+                        this.clearCanvas();
+                        this.addTitle('final-score' `Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
+                        this.gameState = 'score-card';
                     }
                     break;
                 case('enter-name'):
@@ -407,6 +445,7 @@ class Game
         {
             this.gameState = 'level-success';
             this.clearCanvas();
+            this.addTitle('fixed', 'You Beat the Level', 40, '#e00000', 0, 0);
             return;
         }
 
@@ -422,6 +461,7 @@ class Game
 
         if (this.counters[2].check())
         {
+            this.canvas.appendChild(this.player.spriteFrames[this.player.currentFrameCol]);
             this.player.hit = false;
             this.player.visible = true;
             this.counters[2].reset();
@@ -523,8 +563,11 @@ class Game
                 audio.play();
                 this.removeEntity(this.enemyProjectiles, j);
                 this.player.lives--;
+                this.canvas.removeChild(this.playerLives[this.playerLives.length - 1]);
+                this.playerLives.pop();
                 this.player.hit = true;
                 this.player.visible = false;
+                this.canvas.removeChild(this.player.spriteFrames[this.player.currentFrameCol]);
                 this.explode(this.player.xPos - SPRITE_WIDTH - 5, this.player.yPos - SPRITE_HEIGHT - 5, 1);
                 this.counters[2].start();
                 this.counters[3].start();
@@ -553,7 +596,10 @@ class Game
 
         if (this.player.lives < 1)
         {
-            this.endGame();
+        if (this.explosions.length === 0 && this.enemyProjectiles.length === 0 && this.playerProjectiles.length === 0)
+            {
+                this.endGame();
+            }
         }
 
         this.updateVariableText();
@@ -571,6 +617,9 @@ class Game
                     break;
                 case('player-score'):
                     this.titles[i].value.innerText = this.playerScore;
+                    break;
+                case('final-score'):
+                    this.titles[i].value.innerText = `Score: ${this.playerScore}`;
                     break;
             }
         }
@@ -597,8 +646,9 @@ class Game
 
     endGame()
     {
-        this.gameState = 'game-over';
         this.clearCanvas();
+        this.addTitle('fixed', 'Game Over', 40, '#e00000', 0, 0);
+        this.gameState = 'game-over';
     }
 
 
@@ -611,9 +661,15 @@ class Game
     }
 
 
+    /********************************/
+    /*         Clear Canvas         */
+    /********************************/
     clearCanvas()
     {
-        this.canvas.removeChild(this.player.spriteFrames[this.player.currentFrameCol]);
+        if (this.player && !this.player.hit)
+        {
+            this.canvas.removeChild(this.player.spriteFrames[this.player.currentFrameCol]);
+        }
         for (let i = this.enemies.length - 1; i >= 0; i--)
         {
             this.removeEntity(this.enemies, i);
@@ -630,12 +686,24 @@ class Game
         {
             this.removeEntity(this.explosions[i]);
         }
+        for (let i = this.titles.length - 1; i >= 0 ; i--)
+        {
+            this.canvas.removeChild(this.titles[i].value);
+            this.titles.splice(i, 1);
+        }
+        for (let i = this.playerLives.length - 1; i >= 0 ; i--)
+        {
+            this.canvas.removeChild(this.playerLives[i]);
+            this.titles.splice(i, 1);
+        }
 
         this.enemies.length = 0;
         this.player = null;
         this.explosions.length = 0;
         this.playerProjectiles.length = 0;
         this.enemyProjectiles.length = 0;
+        this.titles.length = 0;
+        this.playerLives.length = 0;
     }
 
 
@@ -730,7 +798,7 @@ class Game
     }
 
 
-    addTitle(label, str, size, color, offsetX, offsetY, scalar = 50)
+    addTitle(label, str, size, color, offsetX, offsetY, scalar = 1.428 * TITLE_POSITION_SCALAR)
     {
         const text = document.createElement('div');
         const textWidth = str.length * size;
@@ -832,7 +900,7 @@ class Enemy extends Entity
         this.enemyType = enemyType;
         this.sprite = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
         this.sprite.style.position = 'absolute';
-        this.genSprites(this.enemyType + 1, 0);
+        this.genSprites();
         this.updateSprites();
         this.state = 'entering';
         this.hit = false;
@@ -846,12 +914,15 @@ class Enemy extends Entity
         this.moveIncrement = 10;
         this.currentFrameRow = 0;
         this.currentFrameCol = 6;
-        this.sprite.src = this.spriteFrames[this.currentFrameCol];
+        this.sprite.src = this.spriteFrames[this.currentFrameRow * this.nSpriteSheetRows + this.currentFrameCol];
+        this.cooldownCounter = new Counter(8);
+        this.animCounter = new Counter(10);
+        this.animCounter.start();
 
         switch(enemyType)
         {
             case(1):
-                this.lives = 7;
+                this.lives = 3;
                 break;
             case(3):
                 this.lives = 1;
@@ -869,8 +940,8 @@ class Enemy extends Entity
             for (let j = 0; j < this.nSpriteSheetCols; j++)
             {
                 // Add sprite frames to object's sprite array
-                let index = (i * this.nSpriteSheetCols) + j;
-                const url = ENEMY_SPRITES[this.enemyType - 1][index];
+                let index = j;
+                const url = ENEMY_SPRITES[this.enemyType - 1 + i][index];
                 this.spriteFrames.push(url);
             }
         }
@@ -878,16 +949,19 @@ class Enemy extends Entity
 
     update()
     {
-//        if (this.hit)
-//        {
-//            this.currentFrameRow = 1;
-//        }
-//        if (this.hit && tickCount % 10 === 0)
-//        {
-//            this.hit = false;
-//            this.currentFrameRow = 0;
-//        }
-
+        this.animCounter.update();
+        this.cooldownCounter.update();
+        if (this.hit)
+        {
+            this.currentFrameRow = 1;
+            this.cooldownCounter.start();
+            this.sprite.src = this.spriteFrames[this.currentFrameRow * this.nSpriteSheetCols + this.currentFrameCol];
+        }
+        if (this.hit && this.cooldownCounter.check())
+        {
+            this.hit = false;
+            this.currentFrameRow = 0;
+        }
         let offset = this.xPos - this.startX;
         if (this.direction < 0)
         {
@@ -908,16 +982,21 @@ class Enemy extends Entity
         {
             case('entering'):
                 this.yPos += MOVE_SPEED / 2;
-                if (tickCount % 10 === 0)
+                if (this.animCounter.check())
                 {
                     this.restAnim();
+                    this.animCounter.reset();
+                    this.animCounter.start();
                 }
                 break;
             case('resting'):
+                if (this.animCounter.check())
                 if (tickCount % 10 === 0)
                 {
                     this.restAnim();
                     this.moveAnim(this.moveIncrement * this.direction)
+                    this.animCounter.reset();
+                    this.animCounter.start();
                 }
                 if (!this.coolDown && (Math.floor(Math.random() * 500 * enemyFireRateScalar) === 0))
                 {
@@ -925,10 +1004,12 @@ class Enemy extends Entity
                 }
                 break;
             case('hit'):
-                if (tickCount % 10 === 0)
+                if (this.animCounter.check())
                 {
                     this.restAnim();
                     this.moveAnim(this.moveIncrement * this.direction)
+                    this.animCounter.reset();
+                    this.animCounter.start();
                 }
                 break;
         }
@@ -942,10 +1023,10 @@ class Enemy extends Entity
         if (this.currentFrameCol != this.nSpriteSheetCols - 1)
         {
             this.currentFrameCol = this.nSpriteSheetCols - 1;
-            this.sprite.src = this.spriteFrames[this.currentFrameCol];
+            this.sprite.src = this.spriteFrames[this.currentFrameRow * this.nSpriteSheetCols + this.currentFrameCol];
         } else {
             this.currentFrameCol = this.nSpriteSheetCols - 2;
-            this.sprite.src = this.spriteFrames[this.currentFrameCol];
+            this.sprite.src = this.spriteFrames[this.currentFrameRow * this.nSpriteSheetCols + this.currentFrameCol];
         }
     }
 
@@ -956,11 +1037,6 @@ class Enemy extends Entity
 
     updateSprites()
     {
-//        for (let i = 0; i < this.spriteFrames.length; i++)
-//        {
-//            this.spriteFrames[i].style.top = this.yPos + 'px';
-//            this.spriteFrames[i].style.left = this.xPos + 'px';
-//        }
         this.sprite.style.top = this.yPos + 'px';
         this.sprite.style.left = this.xPos + 'px';
     }
@@ -1129,10 +1205,9 @@ class Counter
 
 function init()
 {
+    game.addTitle('fixed', 'Totally Not Galaga', 50, '#e00000', 0, -5);
+    game.addTitle('fixed', 'Press Enter to Start', 30, '#f0d000', 0, 1);
     game.update();
-
-//    const explosion =  new Explosion(game.canvas, 50, 50, game.spriteSheets[0], 1, 4);
-//    game.addEntity(explosion, 'explosion');
 
 
     // Event Listeners

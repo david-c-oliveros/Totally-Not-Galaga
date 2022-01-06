@@ -50,7 +50,7 @@ let t2 = new Date().getTime();
 let elapsedTime = 0;
 let executeTime = 0;
 let tickCount = 0;
-let difficulty = 5;
+let difficulty = 3;
 let enemyFireRateScalar = 1 - (difficulty / 10);
 let enemyProjectileSpeed = difficulty * 3;
 let playerProjectileSpeed = 30;
@@ -71,7 +71,7 @@ class Game
         this.context = this.canvas.getContext('2d');
         this.player;
         this.playerScore = 0;
-        this.playerOP = true;
+        this.playerOP = false;
         this.highScore = 0;
         this.level = 0;
         this.enemies = [];
@@ -82,9 +82,7 @@ class Game
             this.counters.push(c);
         }
 
-        this.levelGen = [[{type: 1, num:  4, rows: 1}],
-
-                         [{type: 1, num:  4, rows: 1},
+        this.levelGen = [[{type: 1, num:  0, rows: 1},
                          {type: 3, num: 12, rows: 1},
                          {type: 4, num: 16, rows: 2}],
 
@@ -259,9 +257,9 @@ class Game
         /*********************************/
         if (keys[65] && !this.player.hit)
         {
-            if (this.player.xPos < 0)
+            if (this.player.xPos <= 0)
             {
-                this.player.xPos = 1;
+                this.player.xPos = 0;
             } else
             {
                 this.player.xVel -= MOVE_SPEED;
@@ -277,9 +275,9 @@ class Game
         /**********************************/
         if (keys[68] && !this.player.hit)
         {
-            if (this.player.xPos > PLAYER_SCREEN_WIDTH)
+            if (this.player.xPos >= PLAYER_SCREEN_WIDTH)
             {
-                this.player.xPos = PLAYER_SCREEN_WIDTH - 1;
+                this.player.xPos = PLAYER_SCREEN_WIDTH;
             } else
             {
                 this.player.xVel += MOVE_SPEED;
