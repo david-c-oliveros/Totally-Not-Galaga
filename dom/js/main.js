@@ -105,7 +105,7 @@ let t2 = new Date().getTime();
 let elapsedTime = 0;
 let executeTime = 0;
 let tickCount = 0;
-let difficulty = 5;
+let difficulty = 3;
 let enemyFireRateScalar = 1 - (difficulty / 10);
 let enemyProjectileSpeed = difficulty * 3;
 let playerProjectileSpeed = 30;
@@ -166,6 +166,7 @@ class Game
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
         this.playerLives = [];
+        this.bonus = 0;
 
         this.gameState = 'menu';
     }
@@ -177,9 +178,9 @@ class Game
 
         this.addTitle('fixed', 'HIGH', 35, '#e00000', 14, -6, TITLE_POSITION_SCALAR);
         this.addTitle('fixed', 'SCORE', 35, '#e00000', 15.58, -5, 35);
-        this.addTitle('high-score', `${this.highScore}`, 35, '#ffffff', 15.58, -4, TITLE_POSITION_SCALAR);
+        this.addTitle('high-score', `${this.highScore}`, 35, '#ffffff', 13.58, -4, TITLE_POSITION_SCALAR);
         this.addTitle('fixed', '1UP', 35, '#e00000', 14.58, 0, 35);
-        this.addTitle('player-score', `${this.playerScore}`, 35, '#ffffff', 17, 1, TITLE_POSITION_SCALAR);
+        this.addTitle('player-score', `${this.playerScore}`, 35, '#ffffff', 13.58, 1, TITLE_POSITION_SCALAR);
 
         /*********************************/
         /*        Add Player Ship        */
@@ -260,6 +261,7 @@ class Game
                         this.restartCoolDown = true;
                         this.counters[0].start();
                         this.playerScore = 0;
+                        this.bonus = 0;
                         this.clearCanvas();
                         this.generateLevel();
                     }
@@ -272,7 +274,9 @@ class Game
                         this.level = 0;
                         this.checkHighScore();
                         this.clearCanvas();
-                        this.addTitle('final-score', `Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
+                        this.playerScore += this.bonus;
+                        this.addTitle('bonus', `Bonus: ${this.bonus}`, 28, '#f0d000', 0, -2);
+                        this.addTitle('final-score', `Final Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
                         this.gameState = 'score-card';
                     }
                     break;
@@ -292,6 +296,7 @@ class Game
                     {
                         this.restartCoolDown = true;
                         this.counters[0].start();
+                        console.log("Player score:", this.playerScore);
                         if (++this.level >= this.levelGen.length)
                         {
                             this.level = 0;
@@ -310,8 +315,10 @@ class Game
                         this.restartCoolDown = true;
                         this.counters[0].start();
                         this.checkHighScore();
+                        this.playerScore += this.bonus;
                         this.clearCanvas();
-                        this.addTitle('final-score', `Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
+                        this.addTitle('bonus', `Bonus: ${this.bonus}`, 28, '#f0d000', 0, -2);
+                        this.addTitle('final-score', `Final Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
                         this.gameState = 'score-card';
                     }
                     break;
@@ -424,6 +431,7 @@ class Game
             this.enemyProjectiles.length === 0 && this.playerProjectiles.length === 0)
         {
             this.gameState = 'level-success';
+            this.bonus += this.player.lives * 100;
             this.clearCanvas();
             this.addTitle('fixed', 'You Beat the Level', 40, '#e00000', 0, 0);
             return;
@@ -432,7 +440,7 @@ class Game
         /********************************/
         /*        Check Counters        */
         /********************************/
-        if (tickCount % 10 === 0)
+        if (tickCount % 8 === 0)
         {
             this.player.coolDown = false;
             this.counters[1].reset();
@@ -559,6 +567,8 @@ class Game
         {
             if (this.playerProjectiles[i].yPos < -(SPRITE_HEIGHT + 25))
             {
+                if (this.playerScore >= 5)
+                    this.playerScore -= 5;
                 this.removeEntity(this.playerProjectiles, i);
             }
         }
@@ -573,8 +583,9 @@ class Game
 
         if (this.player.lives < 1)
         {
-        if (this.explosions.length === 0 && this.enemyProjectiles.length === 0 && this.playerProjectiles.length === 0)
+            if (this.explosions.length === 0 && this.enemyProjectiles.length === 0 && this.playerProjectiles.length === 0)
             {
+                this.bonus += this.player.lives * 100;
                 this.endGame();
             }
         }
@@ -596,7 +607,10 @@ class Game
                     this.titles[i].value.innerText = this.playerScore;
                     break;
                 case('final-score'):
-                    this.titles[i].value.innerText = `Score: ${this.playerScore}`;
+                    this.titles[i].value.innerText = `Final Score: ${this.playerScore}`;
+                    break;
+                case('bonus'):
+                    this.titles[i].value.innerText = `Bonus: ${this.bonus}`;
                     break;
             }
         }
@@ -621,6 +635,9 @@ class Game
     }
 
 
+    /****************************/
+    /*         End Game         */
+    /****************************/
     endGame()
     {
         this.clearCanvas();
@@ -1206,7 +1223,6 @@ function gameLoop()
 
     game.handleKeyEvent();
 
-    game.render();
     window.requestAnimationFrame(gameLoop);
 }
 
