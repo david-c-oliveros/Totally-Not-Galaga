@@ -135,8 +135,13 @@ class Game
         this.titles = [];
         this.player;
         this.playerScore = 0;
-        this.playerOP = false;
-        this.highScore = 0;
+        this.playerOP = true;
+
+        if (localStorage.getItem('highscore'))
+            this.highScore = localStorage.getItem('highscore')
+        else
+            this.highScore = 0;
+
         this.level = 0;
         this.enemies = [];
         this.counters = [];
@@ -661,6 +666,7 @@ class Game
         if (this.playerScore > this.highScore)
         {
             this.highScore = this.playerScore;
+            localStorage.setItem('highscore', this.highScore);
         }
     }
 
