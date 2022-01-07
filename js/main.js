@@ -93,6 +93,7 @@ const BOSS_POINTS = 700;            // If I implement a bigger boss
 
 // Points awarded for remaining lives
 const PLAYER_LIVES_POINTS = 200;
+const WIN_BONUS = 2000;
 
 const COUNTER_VALUES = [15,     // [0] Restart cooldown
                         10,     // [1] Player fire cooldown
@@ -311,11 +312,11 @@ class Game
                     {
                         this.restartCoolDown = true;
                         this.counters[0].start();
-                        console.log("Player score:", this.playerScore);
                         if (++this.level >= this.levelGen.length)
                         {
                             this.level = 0;
                             this.gameState = 'win';
+                            this.bonus += WIN_BONUS;
                             this.clearCanvas();
                             this.addTitle('fixed', 'You Win!', 40, '#e00000', 0, 0);
                         } else {
@@ -337,7 +338,6 @@ class Game
                         this.gameState = 'score-card';
                     }
                     break;
-                case('enter-name'):
             }
         }
     }
@@ -400,13 +400,6 @@ class Game
             audio.play();
             this.addEntity(new Projectile(this.player.xPos, this.player.yPos - (SPRITE_HEIGHT * SPRITE_SCALE), 'player', playerProjectileSpeed), 'player-projectile');
         }
-    }
-
-
-    handleCanvasInput(e)
-    {
-        this.playerName += e.keyCode;
-        //console.log(String.fromCharCode(e.keyCode));
     }
 
 
@@ -1200,26 +1193,8 @@ function init()
     });
 }
 
-function inputLoop()
-{
-    if (game.gameState === 'playing')
-    {
-        window.requestAnimationFrame(gameLoop);
-    }
-
-    document.addEventListener('keypress', function(e) {
-        game.handleCanvasInput(e);
-    });
-
-    window.requestAnimationFrame(inputLoop);
-}
-
 function gameLoop()
 {
-    if (game.gameState === 'enter-name')
-    {
-        window.requestAnimationFrame(inputLoop);
-    }
     t2 = new Date().getTime();
     elapsedTime = t2 - t1;
     t1 = t2;
