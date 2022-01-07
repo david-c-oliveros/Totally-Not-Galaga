@@ -1,10 +1,13 @@
-- MVP
-
-
 - Stretch goals
     1) Add functionality for program to read level data from a file
 
     2) Add functionality for game to write and read player high scores to and from a file
+
+    3) Add big boss to the game
+
+    4) Improve levels
+
+    5) Fix enemy move timing so they don't stack on top of each other
 
 
 

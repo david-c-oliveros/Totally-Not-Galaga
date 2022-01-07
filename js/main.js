@@ -82,8 +82,17 @@ const BIG_SPRITE_HEIGHT = 32;
 const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
 const AUDIO_VOL = 0.07;
 
+// Timing
 const GAME_TICK = 20;
 const MOVE_SPEED = 10;
+
+// Points awarded for kills
+const BIG_ENEMY_POINTS = 100;
+const SMALL_ENEMY_POINTS = 40;
+const BOSS_POINTS = 700;            // If I implement a bigger boss
+
+// Points awarded for remaining lives
+const PLAYER_LIVES_POINTS = 200;
 
 const COUNTER_VALUES = [15,     // [0] Restart cooldown
                         10,     // [1] Player fire cooldown
@@ -288,6 +297,7 @@ class Game
                         this.clearCanvas();
                         this.addTitle('fixed', 'Totally Not Galaga', 50, '#e00000', 0, -5);
                         this.addTitle('fixed', 'Press Enter to Start', 30, '#f0d000', 0, 1);
+                        location.reload();
                         this.gameState = 'menu';
                     }
                     break;
@@ -431,7 +441,7 @@ class Game
             this.enemyProjectiles.length === 0 && this.playerProjectiles.length === 0)
         {
             this.gameState = 'level-success';
-            this.bonus += this.player.lives * 100;
+            this.bonus += this.player.lives * PLAYER_LIVES_POINTS;
             this.clearCanvas();
             this.addTitle('fixed', 'You Beat the Level', 40, '#e00000', 0, 0);
             return;
@@ -520,10 +530,10 @@ class Game
                     this.enemies[i].lives--;
                     if (this.enemies[i].enemyType <= 2)
                     {
-                        this.playerScore += 80;
+                        this.playerScore += BIG_ENEMY_POINTS;
                     } else
                     {
-                        this.playerScore += 50;
+                        this.playerScore += SMALL_ENEMY_POINTS;
                     }
                     this.removeEntity(this.playerProjectiles, j);
                     this.enemies[i].hit = true;
@@ -585,7 +595,7 @@ class Game
         {
             if (this.explosions.length === 0 && this.enemyProjectiles.length === 0 && this.playerProjectiles.length === 0)
             {
-                this.bonus += this.player.lives * 100;
+                this.bonus += this.player.lives * PLAYER_LIVES_POINTS;
                 this.endGame();
             }
         }
