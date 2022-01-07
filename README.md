@@ -44,8 +44,6 @@ The scoring system works in the following way:
 
 ![screenshot](screenshots/Menu.png)
 
-![screenshot](screenshots/Gameplay_1.png)
-
 ![screenshot](screenshots/Gameplay_2.png)
 
 ![screenshot](screenshots/FinalScore.png)
