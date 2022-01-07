@@ -1,6 +1,6 @@
-#Totally Not Galaga
+# Totally Not Galaga
 
-##Overview
+## Overview
 **Totally Not Galaga** is a Galaga clone with some variations.  Like Galaga, the player controls
 a ship at the bottom of the screen with which you shoot the enemy bugs that come to attack you.
 
@@ -9,16 +9,16 @@ and fire projectiles at the player as they move back and forth across the screen
 This changes the nature of the gameplay from classic Galaga, in that in **Totally Not Galaga**,
 a large part of the gameplay strategy is to dodge the bug's projectiles, and fire at the bugs while doing so.
 
-##The Player
+## The Player
 The player has 3 lives available for each level, after beating a level, the remaining lives reset to 3.
 The player's remaining lives are displayed on the right side of the screen, below the player's score.
 
-##The Bugs
+## The Bugs
 There are currently three different kinds of bugs, which are labeled in the code as **Type 1**, **Type 3**, and **Type 4**.
 **Type 3** and **Type 4** are effectively the same from a gameplay perspective, but are different in appearance.
 **Type 4**'s are the 'Boss' bugs, and take 3 hits to eliminate.
 
-##Scoring
+## Scoring
 The scoring system works in the following way:
 > - Eliminating **Type 3** and **Type 4** bugs gives the player 40 points.
 
