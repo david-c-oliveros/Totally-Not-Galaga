@@ -135,7 +135,7 @@ class Game
         this.titles = [];
         this.player;
         this.playerScore = 0;
-        this.playerOP = true;
+        this.playerOP = false;
 
         if (localStorage.getItem('highscore'))
             this.highScore = localStorage.getItem('highscore')
