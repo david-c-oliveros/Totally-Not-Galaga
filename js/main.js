@@ -156,24 +156,24 @@ class Game
                           {type: 4, num: 20, rows: 2}],
 
                          [{type: 1, num:  4, rows: 1},
-                          {type: 3, num: 20, rows: 2},
-                          {type: 4, num: 24, rows: 2}],
+                          {type: 3, num: 0, rows: 2},
+                          {type: 4, num: 4, rows: 2}],
 
                          [{type: 1, num:  8, rows: 1},
-                          {type: 3, num: 24, rows: 2},
-                          {type: 4, num: 28, rows: 2}],
+                          {type: 3, num: 4, rows: 2},
+                          {type: 4, num: 8, rows: 2}],
 
-                         [{type: 1, num: 10, rows: 1},
-                          {type: 3, num: 28, rows: 2},
-                          {type: 4, num: 32, rows: 2}],
-
-                         [{type: 1, num: 12, rows: 1},
-                          {type: 3, num: 32, rows: 2},
-                          {type: 4, num: 36, rows: 3}],
-
-                         [{type: 1, num: 16, rows: 2},
-                          {type: 3, num: 36, rows: 3},
-                          {type: 4, num: 34, rows: 4}]
+//                         [{type: 1, num: 10, rows: 1},
+//                          {type: 3, num: 28, rows: 2},
+//                          {type: 4, num: 32, rows: 2}],
+//
+//                         [{type: 1, num: 12, rows: 1},
+//                          {type: 3, num: 32, rows: 2},
+//                          {type: 4, num: 36, rows: 3}],
+//
+//                         [{type: 1, num: 16, rows: 2},
+//                          {type: 3, num: 36, rows: 3},
+//                          {type: 4, num: 34, rows: 4}]
                         ];
 
         this.explosions = [];
@@ -286,9 +286,9 @@ class Game
                         this.restartCoolDown = true;
                         this.counters[0].start();
                         this.level = 0;
+                        this.playerScore += this.bonus;
                         this.checkHighScore();
                         this.clearCanvas();
-                        this.playerScore += this.bonus;
                         this.addTitle('bonus', `Bonus: ${this.bonus}`, 28, '#f0d000', 0, -2);
                         this.addTitle('final-score', `Final Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
                         this.gameState = 'score-card';
@@ -329,8 +329,8 @@ class Game
                     {
                         this.restartCoolDown = true;
                         this.counters[0].start();
-                        this.checkHighScore();
                         this.playerScore += this.bonus;
+                        this.checkHighScore();
                         this.clearCanvas();
                         this.addTitle('bonus', `Bonus: ${this.bonus}`, 28, '#f0d000', 0, -2);
                         this.addTitle('final-score', `Final Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
