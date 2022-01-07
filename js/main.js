@@ -152,31 +152,7 @@ class Game
             this.counters.push(c);
         }
 
-        this.levelGen = [[{type: 1, num:  0, rows: 1},
-                          {type: 3, num: 10, rows: 1},
-                          {type: 4, num: 20, rows: 2}],
-
-                         [{type: 1, num:  4, rows: 1},
-                          {type: 3, num: 0, rows: 2},
-                          {type: 4, num: 4, rows: 2}],
-
-                         [{type: 1, num:  8, rows: 1},
-                          {type: 3, num: 4, rows: 2},
-                          {type: 4, num: 8, rows: 2}],
-
-//                         [{type: 1, num: 10, rows: 1},
-//                          {type: 3, num: 28, rows: 2},
-//                          {type: 4, num: 32, rows: 2}],
-//
-//                         [{type: 1, num: 12, rows: 1},
-//                          {type: 3, num: 32, rows: 2},
-//                          {type: 4, num: 36, rows: 3}],
-//
-//                         [{type: 1, num: 16, rows: 2},
-//                          {type: 3, num: 36, rows: 3},
-//                          {type: 4, num: 34, rows: 4}]
-                        ];
-
+        this.levelGen = LevelSet_1;
         this.explosions = [];
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
@@ -264,6 +240,11 @@ class Game
     }
 
 
+    /**********************************************************************/
+    /*                        Handle Screen Events                        */ 
+    /*           Handles 'Enter' press events when the game is in         */
+    /*                    various non-gameplay states                     */
+    /**********************************************************************/
     handleScreenEvents()
     {
         if (keys[13])
@@ -316,7 +297,9 @@ class Game
                         {
                             this.level = 0;
                             this.gameState = 'win';
+                            console.log(this.bonus);
                             this.bonus += WIN_BONUS;
+                            console.log(this.bonus);
                             this.clearCanvas();
                             this.addTitle('fixed', 'You Win!', 40, '#e00000', 0, 0);
                         } else {
@@ -1129,7 +1112,14 @@ class Explosion extends Entity
     }
 }
 
-
+/*******************************************************************/
+/*                                                                 */
+/*                          Counter Class                          */
+/*         This class is similar to a timer, but it counts         */
+/*         game ticks. The check() function checks whether         */
+/*     the limit passed into the constructor has been reached.     */
+/*                                                                 */
+/*******************************************************************/
 class Counter
 {
     constructor(duration)
