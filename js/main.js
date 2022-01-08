@@ -1065,7 +1065,7 @@ class Explosion extends Entity
             this.nSpriteSheetRows = 1;
             this.nSpriteSheetCols = 5;
             this.genSprites();
-            this.speed = 2;
+            this.speed = 1;
         }
         this.destroyed = false;
         this.currentFrameCol = 0;
