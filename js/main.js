@@ -8,8 +8,6 @@ const PLAYER_SCREEN_WIDTH = SCREEN_WIDTH - 400;
 
 const TITLE_POSITION_SCALAR = 35;
 
-console.log("Screen dimensions:", SCREEN_WIDTH, SCREEN_HEIGHT);
-
 // Sprite constants
 const PLAYER_SPRITES = ['./images/player/player_sprite_00.png',
                         './images/player/player_sprite_01.png',
@@ -97,8 +95,9 @@ const WIN_BONUS = 2000;
 
 const COUNTER_VALUES = [15,     // [0] Restart cooldown
                         10,     // [1] Player fire cooldown
-                        80,    // [2] Player respawn cooldown
+                        80,     // [2] Player respawn cooldown
                         120,    // [3] Enemy hit cooldown
+                        10      // [4] Enemy animation timing
                        ];
 
 
@@ -115,6 +114,7 @@ let t2 = new Date().getTime();
 let elapsedTime = 0;
 let executeTime = 0;
 let tickCount = 0;
+let tickCounters = [];
 let difficulty = 3;
 let enemyFireRateScalar = 1 - (difficulty / 10);
 let enemyProjectileSpeed = difficulty * 3;
@@ -145,11 +145,10 @@ class Game
 
         this.level = 0;
         this.enemies = [];
-        this.counters = [];
         for (let i = 0; i < COUNTER_VALUES.length; i++)
         {
             const c = new Counter(COUNTER_VALUES[i]);
-            this.counters.push(c);
+            tickCounters.push(c);
         }
 
         this.levelGen = LevelSet_1;
@@ -225,6 +224,7 @@ class Game
                 openRow++;
             }
         }
+        tickCounters[4].start();
     }
 
 
@@ -255,7 +255,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
-                        this.counters[0].start();
+                        tickCounters[0].start();
                         this.playerScore = 0;
                         this.bonus = 0;
                         this.clearCanvas();
@@ -266,7 +266,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
-                        this.counters[0].start();
+                        tickCounters[0].start();
                         this.level = 0;
                         this.playerScore += this.bonus;
                         this.checkHighScore();
@@ -280,7 +280,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
-                        this.counters[0].start();
+                        tickCounters[0].start();
                         this.clearCanvas();
                         this.addTitle('fixed', 'Totally Not Galaga', 50, '#e00000', 0, -5);
                         this.addTitle('fixed', 'Press Enter to Start', 30, '#f0d000', 0, 1);
@@ -292,14 +292,12 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
-                        this.counters[0].start();
+                        tickCounters[0].start();
                         if (++this.level >= this.levelGen.length)
                         {
                             this.level = 0;
                             this.gameState = 'win';
-                            console.log(this.bonus);
                             this.bonus += WIN_BONUS;
-                            console.log(this.bonus);
                             this.clearCanvas();
                             this.addTitle('fixed', 'You Win!', 40, '#e00000', 0, 0);
                         } else {
@@ -312,7 +310,7 @@ class Game
                     if (!this.restartCoolDown)
                     {
                         this.restartCoolDown = true;
-                        this.counters[0].start();
+                        tickCounters[0].start();
                         this.playerScore += this.bonus;
                         this.checkHighScore();
                         this.clearCanvas();
@@ -377,7 +375,7 @@ class Game
             {
                 this.player.coolDown = true;
             }
-            this.counters[1].start();
+            tickCounters[1].start();
             const audio = new Audio(AUDIO_FILES[1]);
             audio.volume = AUDIO_VOL;
             audio.play();
@@ -391,9 +389,9 @@ class Game
     /*****************************/
     update()
     {
-        for (let i = 0; i < this.counters.length; i++)
+        for (let i = 0; i < tickCounters.length; i++)
         {
-            this.counters[i].update();
+            tickCounters[i].update();
         }
 
         if (this.gameState === 'playing')
@@ -407,10 +405,10 @@ class Game
 
     updateScreens()
     {
-        if (this.counters[0].check())
+        if (tickCounters[0].check())
         {
             this.restartCoolDown = false;
-            this.counters[0].reset();
+            tickCounters[0].reset();
         }
         this.updateVariableText();
     }
@@ -424,7 +422,7 @@ class Game
             this.gameState = 'level-success';
             this.bonus += this.player.lives * PLAYER_LIVES_POINTS;
             this.clearCanvas();
-            this.addTitle('fixed', 'You Beat the Level', 40, '#e00000', 0, 0);
+            this.addTitle('fixed', `Completed Wave ${this.level + 1}`, 40, '#e00000', 0, 0);
             return;
         }
 
@@ -434,20 +432,20 @@ class Game
         if (tickCount % 8 === 0)
         {
             this.player.coolDown = false;
-            this.counters[1].reset();
+            tickCounters[1].reset();
         }
 
-        if (this.counters[2].check())
+        if (tickCounters[2].check())
         {
             this.canvas.appendChild(this.player.spriteFrames[this.player.currentFrameCol]);
             this.player.hit = false;
-            this.counters[2].reset();
+            tickCounters[2].reset();
         }
 
-        if (this.counters[3].check())
+        if (tickCounters[3].check())
         {
             this.enemyReady();
-            this.counters[3].reset();
+            tickCounters[3].reset();
         }
 
         /********************************/
@@ -468,6 +466,16 @@ class Game
                                               'enemy', enemyProjectileSpeed), 'enemy-projectile');
             }
         }
+
+        /*****************************************************/
+        /*        Check Enemy Animation Tick Counters        */
+        /*****************************************************/
+        if (tickCounters[4].check())
+        {
+            tickCounters[4].reset();
+            tickCounters[4].start();
+        }
+
 
         /************************************/
         /*        Update Projectiles        */
@@ -545,8 +553,8 @@ class Game
                 this.player.hit = true;
                 this.canvas.removeChild(this.player.spriteFrames[this.player.currentFrameCol]);
                 this.explode(this.player.xPos - SPRITE_WIDTH - 5, this.player.yPos - SPRITE_HEIGHT - 5, 1);
-                this.counters[2].start();
-                this.counters[3].start();
+                tickCounters[2].start();
+                tickCounters[3].start();
                 this.enemyCoolDown();
             }
         }
@@ -872,8 +880,6 @@ class Enemy extends Entity
         this.currentFrameCol = 6;
         this.sprite.src = this.spriteFrames[this.currentFrameRow * this.nSpriteSheetRows + this.currentFrameCol];
         this.cooldownCounter = new Counter(8);
-        this.animCounter = new Counter(10);
-        this.animCounter.start();
 
         switch(enemyType)
         {
@@ -905,7 +911,6 @@ class Enemy extends Entity
 
     update()
     {
-        this.animCounter.update();
         this.cooldownCounter.update();
         if (this.hit)
         {
@@ -938,21 +943,16 @@ class Enemy extends Entity
         {
             case('entering'):
                 this.yPos += MOVE_SPEED / 2;
-                if (this.animCounter.check())
+                if (tickCounters[4].check())
                 {
                     this.restAnim();
-                    this.animCounter.reset();
-                    this.animCounter.start();
                 }
                 break;
             case('resting'):
-                if (this.animCounter.check())
-                if (tickCount % 10 === 0)
+                if (tickCounters[4].check())
                 {
                     this.restAnim();
                     this.moveAnim(this.moveIncrement * this.direction)
-                    this.animCounter.reset();
-                    this.animCounter.start();
                 }
                 if (!this.coolDown && (Math.floor(Math.random() * 500 * enemyFireRateScalar) === 0))
                 {
@@ -960,12 +960,10 @@ class Enemy extends Entity
                 }
                 break;
             case('hit'):
-                if (this.animCounter.check())
+                if (tickCounters[4].check())
                 {
                     this.restAnim();
                     this.moveAnim(this.moveIncrement * this.direction)
-                    this.animCounter.reset();
-                    this.animCounter.start();
                 }
                 break;
         }
