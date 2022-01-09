@@ -2,13 +2,6 @@
 /*         Constants         */
 /*****************************/
 
-const SCREEN_WIDTH = 1200;
-const SCREEN_HEIGHT = 770; 
-console.log(SCREEN_WIDTH, SCREEN_HEIGHT);
-const PLAYER_SCREEN_WIDTH = SCREEN_WIDTH - (SCREEN_WIDTH / 3.5);
-
-const TITLE_POSITION_SCALAR = SCREEN_WIDTH / 40;
-
 // Sprite constants
 const PLAYER_SPRITES = ['./images/player/player_sprite_00.png',
                         './images/player/player_sprite_01.png',
@@ -68,26 +61,12 @@ const EXPLOSIONS = [['images/explosion/type-1/explosion_1_sprite_00.png',
 const PLAYER_PROJECTILES = 'images/projectiles/player/player_projectile_sprite_00.png';
 const ENEMY_PROJECTILES  = 'images/projectiles/enemy/enemy_projectile_sprite_00.png';
 
-const SPRITE_WIDTH = SCREEN_WIDTH / 87.5;
-const SPRITE_HEIGHT = SCREEN_WIDTH / 87.5;
-const SPRITE_SCALE = SCREEN_WIDTH / 466.7;
-
-const BIG_SPRITE_WIDTH = SCREEN_WIDTH / 43.75;
-const BIG_SPRITE_HEIGHT = SCREEN_WIDTH / 43.75;
-
-const TITLE_FONT_SIZE_BIG_1 = SCREEN_WIDTH / 35;
-const TITLE_FONT_SIZE_BIG_2 = SCREEN_WIDTH / 28;
-const TITLE_FONT_SIZE_MEDIUM_1 = SCREEN_WIDTH / 46.7;
-const TITLE_FONT_SIZE_MEDIUM_2 = SCREEN_WIDTH / 40;
-const TITLE_FONT_SIZE_SMALL_1 = SCREEN_WIDTH / 50;
-
 // Audio
 const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
 const AUDIO_VOL = 0.07;
 
 // Timing
 const GAME_TICK = 20;
-const MOVE_SPEED = SCREEN_WIDTH / 140;
 
 // Points awarded for kills
 const BIG_ENEMY_POINTS = 100;
@@ -112,7 +91,26 @@ const COUNTER_VALUES = [15,     // [0] Restart cooldown
 /**********************************/
 /*        Global Variables        */
 /**********************************/
- 
+
+let PLAYER_SCREEN_WIDTH;
+
+let TITLE_POSITION_SCALAR;
+
+let SPRITE_WIDTH;
+let SPRITE_HEIGHT;
+let SPRITE_SCALE;
+
+let BIG_SPRITE_WIDTH;
+let BIG_SPRITE_HEIGHT;
+
+let TITLE_FONT_SIZE_BIG_1;
+let TITLE_FONT_SIZE_BIG_2;
+let TITLE_FONT_SIZE_MEDIUM_1;
+let TITLE_FONT_SIZE_MEDIUM_2;
+let TITLE_FONT_SIZE_SMALL_1;
+
+let MOVE_SPEED;
+
 let keys = [];
 let t1 = new Date().getTime();
 let t2 = new Date().getTime();
@@ -120,10 +118,9 @@ let elapsedTime = 0;
 let executeTime = 0;
 let tickCount = 0;
 let tickCounters = [];
-let difficulty = 3;
-let enemyFireRateScalar = 1 - (difficulty / 10);
-let enemyProjectileSpeed = difficulty * (SCREEN_WIDTH / 466.7);
-let playerProjectileSpeed = SCREEN_WIDTH / 46.7;
+
+difficulty = 3;
+enemyFireRateScalar = 1 - (difficulty / 10);
 
 
 
@@ -138,10 +135,18 @@ class Game
     constructor()
     {
         this.canvas = document.querySelector('#canvas');
+        this.canvas.style.width = '60%';
+        this.canvas.style.height = this.canvas.clientWidth / 1.5 + 'px';
+
+        this.setScreenVariables();
+
         this.titles = [];
         this.player;
         this.playerScore = 0;
         this.playerOP = false;
+
+        this.enemyProjectileSpeed = difficulty * (this.getScreenWidth() / 466.7);
+        this.playerProjectileSpeed = this.getScreenWidth() / 46.7;
 
         if (localStorage.getItem('highscore'))
             this.highScore = localStorage.getItem('highscore')
@@ -167,6 +172,30 @@ class Game
     }
 
 
+    setScreenVariables()
+    {
+        let sw = this.getScreenWidth();
+        PLAYER_SCREEN_WIDTH = sw - (sw / 3.5);
+
+        TITLE_POSITION_SCALAR = sw / 40;
+
+        SPRITE_WIDTH  = sw / 70.5;
+        SPRITE_HEIGHT = sw / 70.5;
+        SPRITE_SCALE  = sw/ 466.7;
+
+        BIG_SPRITE_WIDTH  = sw / 43.75;
+        BIG_SPRITE_HEIGHT = sw / 43.75;
+
+        TITLE_FONT_SIZE_BIG_1    = sw / 35;
+        TITLE_FONT_SIZE_BIG_2    = sw / 28;
+        TITLE_FONT_SIZE_MEDIUM_1 = sw / 46.7;
+        TITLE_FONT_SIZE_MEDIUM_2 = sw / 40;
+        TITLE_FONT_SIZE_SMALL_1  = sw / 50;
+
+        MOVE_SPEED = sw / 140;
+    }
+
+
     generateLevel()
     {
         this.gameState = 'playing';
@@ -181,7 +210,7 @@ class Game
         /*        Add Player Ship        */
         /*********************************/
         const playerPosX = (PLAYER_SCREEN_WIDTH / 2) - (SPRITE_WIDTH / 2);
-        const playerPosY = SCREEN_HEIGHT - (SCREEN_HEIGHT / 7);
+        const playerPosY = this.getScreenHeight() - (this.getScreenHeight() / 7);
         this.player = new Player(playerPosX, playerPosY, 1, 7);
         this.addEntity(this.player, 'player');
 
@@ -193,8 +222,8 @@ class Game
             const life = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
             life.src = PLAYER_SPRITES[6];
             life.style.position = 'absolute';
-            life.style.left = SCREEN_WIDTH - (i * SPRITE_WIDTH * SPRITE_SCALE) - (SCREEN_WIDTH / 14) + 'px';
-            life.style.top = SCREEN_HEIGHT - (7 * SPRITE_HEIGHT * SPRITE_SCALE) + 'px';
+            life.style.left = this.getScreenWidth() - (i * SPRITE_WIDTH * SPRITE_SCALE) - (this.getScreenWidth() / 14) + 'px';
+            life.style.top = this.getScreenHeight() - (7 * SPRITE_HEIGHT * SPRITE_SCALE) + 'px';
             this.playerLives.push(life);
             this.canvas.appendChild(this.playerLives[this.playerLives.length - 1]);
         }
@@ -214,7 +243,7 @@ class Game
             for (let j = 0; j < this.levelGen[this.level][i].rows; j++)
             {
                 startX = ((PLAYER_SCREEN_WIDTH / 2) - (this.levelGen[this.level][i].num / (2 * this.levelGen[this.level][i].rows)) * spacing);
-                yRest = (SCREEN_HEIGHT / 9) + (openRow * spacing);
+                yRest = (this.getScreenHeight() / 9) + (openRow * spacing);
                 for (let k = 0; k < this.levelGen[this.level][i].num / this.levelGen[this.level][i].rows; k++)
                 {
                     x = startX + (k * spacing);
@@ -384,7 +413,7 @@ class Game
             const audio = new Audio(AUDIO_FILES[1]);
             audio.volume = AUDIO_VOL;
             audio.play();
-            this.addEntity(new Projectile(this.player.xPos, this.player.yPos - (SPRITE_HEIGHT * SPRITE_SCALE), 'player', playerProjectileSpeed), 'player-projectile');
+            this.addEntity(new Projectile(this.player.xPos, this.player.yPos - (SPRITE_HEIGHT * SPRITE_SCALE), 'player', this.playerProjectileSpeed), 'player-projectile');
         }
     }
 
@@ -468,7 +497,7 @@ class Game
             if (this.enemies[i].update())
             {
                 this.addEntity(new Projectile(this.enemies[i].xPos + 3, this.enemies[i].yPos + (SPRITE_HEIGHT * SPRITE_SCALE * 0.1),
-                                              'enemy', enemyProjectileSpeed), 'enemy-projectile');
+                                              'enemy', this.enemyProjectileSpeed), 'enemy-projectile');
             }
         }
 
@@ -522,17 +551,17 @@ class Game
                     audio.volume = AUDIO_VOL * 0.7;
                     audio.play();
                     this.enemies[i].lives--;
-                    if (this.enemies[i].enemyType <= 2)
-                    {
-                        this.playerScore += BIG_ENEMY_POINTS;
-                    } else
-                    {
-                        this.playerScore += SMALL_ENEMY_POINTS;
-                    }
                     this.removeEntity(this.playerProjectiles, j);
                     this.enemies[i].hit = true;
                     if (this.enemies[i].lives <= 0)
                     {
+                        if (this.enemies[i].enemyType <= 2)
+                        {
+                            this.playerScore += BIG_ENEMY_POINTS;
+                        } else
+                        {
+                            this.playerScore += SMALL_ENEMY_POINTS;
+                        }
                         this.explode(this.enemies[i].xPos - SPRITE_WIDTH - 5, this.enemies[i].yPos - SPRITE_HEIGHT - 5, 2);
                         this.removeEntity(this.enemies, i);
                     }
@@ -579,7 +608,7 @@ class Game
 
         for (let i = 0; i < this.enemyProjectiles.length; i++)
         {
-            if (this.enemyProjectiles[i].yPos > SCREEN_HEIGHT - (SPRITE_HEIGHT + 5))
+            if (this.enemyProjectiles[i].yPos > this.getScreenHeight() - (SPRITE_HEIGHT + 5))
             {
                 this.removeEntity(this.enemyProjectiles, i);
             }
@@ -778,8 +807,8 @@ class Game
         text.style.position = 'absolute';
         text.style.color = color;
         text.style.fontSize = size + 'px';
-        text.style.left = (SCREEN_WIDTH / 2) - (textWidth / 2) + (offsetX * scalar) + 'px';
-        text.style.top = (SCREEN_HEIGHT / 2) - (size / 2) + (offsetY * scalar) + 'px';
+        text.style.left = (this.getScreenWidth() / 2) - (textWidth / 2) + (offsetX * scalar) + 'px';
+        text.style.top = (this.getScreenHeight() / 2) - (size / 2) + (offsetY * scalar) + 'px';
         this.titles.push({label: label, value: text});
         this.canvas.appendChild(this.titles[this.titles.length - 1].value);
     }
@@ -792,6 +821,18 @@ class Game
     {
         const explosion = new Explosion(xPos, yPos, type);
         this.addEntity(explosion, 'explosion');
+    }
+
+
+    getScreenWidth()
+    {
+        return this.canvas.clientWidth;
+    }
+
+
+    getScreenHeight()
+    {
+        return this.canvas.clientHeight;
     }
 }
 
@@ -1177,6 +1218,10 @@ function init()
 
 
     // Event Listeners
+    window.addEventListener('resize', function() {
+        game.updateScreenVariables();
+    });
+
     document.addEventListener('keydown', function(e) {
         keys[e.keyCode] = true;
     });
