@@ -2,11 +2,12 @@
 /*         Constants         */
 /*****************************/
 
-const SCREEN_WIDTH = 1400;
-const SCREEN_HEIGHT = 900; 
-const PLAYER_SCREEN_WIDTH = SCREEN_WIDTH - 400;
+const SCREEN_WIDTH = 1200;
+const SCREEN_HEIGHT = 770; 
+console.log(SCREEN_WIDTH, SCREEN_HEIGHT);
+const PLAYER_SCREEN_WIDTH = SCREEN_WIDTH - (SCREEN_WIDTH / 3.5);
 
-const TITLE_POSITION_SCALAR = 35;
+const TITLE_POSITION_SCALAR = SCREEN_WIDTH / 40;
 
 // Sprite constants
 const PLAYER_SPRITES = ['./images/player/player_sprite_00.png',
@@ -67,14 +68,18 @@ const EXPLOSIONS = [['images/explosion/type-1/explosion_1_sprite_00.png',
 const PLAYER_PROJECTILES = 'images/projectiles/player/player_projectile_sprite_00.png';
 const ENEMY_PROJECTILES  = 'images/projectiles/enemy/enemy_projectile_sprite_00.png';
 
-const SPRITE_WIDTH = 16;
-const SPRITE_HEIGHT = 16;
-const BORDER_WIDTH = 1;
-const SPACING_WIDTH = 2;
-const SPRITE_SCALE = 3;
+const SPRITE_WIDTH = SCREEN_WIDTH / 87.5;
+const SPRITE_HEIGHT = SCREEN_WIDTH / 87.5;
+const SPRITE_SCALE = SCREEN_WIDTH / 466.7;
 
-const BIG_SPRITE_WIDTH = 32;
-const BIG_SPRITE_HEIGHT = 32;
+const BIG_SPRITE_WIDTH = SCREEN_WIDTH / 43.75;
+const BIG_SPRITE_HEIGHT = SCREEN_WIDTH / 43.75;
+
+const TITLE_FONT_SIZE_BIG_1 = SCREEN_WIDTH / 35;
+const TITLE_FONT_SIZE_BIG_2 = SCREEN_WIDTH / 28;
+const TITLE_FONT_SIZE_MEDIUM_1 = SCREEN_WIDTH / 46.7;
+const TITLE_FONT_SIZE_MEDIUM_2 = SCREEN_WIDTH / 40;
+const TITLE_FONT_SIZE_SMALL_1 = SCREEN_WIDTH / 50;
 
 // Audio
 const AUDIO_FILES = ['audio/8bit_explosion.wav', 'audio/8bit_laser.wav', 'audio/8bit_hit.wav']
@@ -82,7 +87,7 @@ const AUDIO_VOL = 0.07;
 
 // Timing
 const GAME_TICK = 20;
-const MOVE_SPEED = 10;
+const MOVE_SPEED = SCREEN_WIDTH / 140;
 
 // Points awarded for kills
 const BIG_ENEMY_POINTS = 100;
@@ -117,8 +122,8 @@ let tickCount = 0;
 let tickCounters = [];
 let difficulty = 3;
 let enemyFireRateScalar = 1 - (difficulty / 10);
-let enemyProjectileSpeed = difficulty * 3;
-let playerProjectileSpeed = 30;
+let enemyProjectileSpeed = difficulty * (SCREEN_WIDTH / 466.7);
+let playerProjectileSpeed = SCREEN_WIDTH / 46.7;
 
 
 
@@ -166,11 +171,11 @@ class Game
     {
         this.gameState = 'playing';
 
-        this.addTitle('fixed', 'HIGH', 35, '#e00000', 14, -6, TITLE_POSITION_SCALAR);
-        this.addTitle('fixed', 'SCORE', 35, '#e00000', 15.58, -5, 35);
-        this.addTitle('high-score', `${this.highScore}`, 35, '#ffffff', 13.58, -4, TITLE_POSITION_SCALAR);
-        this.addTitle('fixed', '1UP', 35, '#e00000', 14.58, 0, 35);
-        this.addTitle('player-score', `${this.playerScore}`, 35, '#ffffff', 13.58, 1, TITLE_POSITION_SCALAR);
+        this.addTitle('fixed', 'HIGH', TITLE_FONT_SIZE_MEDIUM_2, '#e00000', 14, -6, TITLE_POSITION_SCALAR);
+        this.addTitle('fixed', 'SCORE', TITLE_FONT_SIZE_MEDIUM_2, '#e00000', 15.58, -5, TITLE_POSITION_SCALAR);
+        this.addTitle('high-score', `${this.highScore}`, TITLE_FONT_SIZE_MEDIUM_2, '#ffffff', 13.58, -4, TITLE_POSITION_SCALAR);
+        this.addTitle('fixed', '1UP', TITLE_FONT_SIZE_MEDIUM_2, '#e00000', 14.58, 0, TITLE_POSITION_SCALAR);
+        this.addTitle('player-score', `${this.playerScore}`, TITLE_FONT_SIZE_MEDIUM_2, '#ffffff', 13.58, 1, TITLE_POSITION_SCALAR);
 
         /*********************************/
         /*        Add Player Ship        */
@@ -188,7 +193,7 @@ class Game
             const life = new Image(SPRITE_WIDTH * SPRITE_SCALE, SPRITE_HEIGHT * SPRITE_SCALE);
             life.src = PLAYER_SPRITES[6];
             life.style.position = 'absolute';
-            life.style.left = SCREEN_WIDTH - (i * SPRITE_WIDTH * SPRITE_SCALE) - 100 + 'px';
+            life.style.left = SCREEN_WIDTH - (i * SPRITE_WIDTH * SPRITE_SCALE) - (SCREEN_WIDTH / 14) + 'px';
             life.style.top = SCREEN_HEIGHT - (7 * SPRITE_HEIGHT * SPRITE_SCALE) + 'px';
             this.playerLives.push(life);
             this.canvas.appendChild(this.playerLives[this.playerLives.length - 1]);
@@ -209,7 +214,7 @@ class Game
             for (let j = 0; j < this.levelGen[this.level][i].rows; j++)
             {
                 startX = ((PLAYER_SCREEN_WIDTH / 2) - (this.levelGen[this.level][i].num / (2 * this.levelGen[this.level][i].rows)) * spacing);
-                yRest = 100 + (openRow * spacing);
+                yRest = (SCREEN_HEIGHT / 9) + (openRow * spacing);
                 for (let k = 0; k < this.levelGen[this.level][i].num / this.levelGen[this.level][i].rows; k++)
                 {
                     x = startX + (k * spacing);
@@ -271,8 +276,8 @@ class Game
                         this.playerScore += this.bonus;
                         this.checkHighScore();
                         this.clearCanvas();
-                        this.addTitle('bonus', `Bonus: ${this.bonus}`, 28, '#f0d000', 0, -2);
-                        this.addTitle('final-score', `Final Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
+                        this.addTitle('bonus', `Bonus: ${this.bonus}`, TITLE_FONT_SIZE_SMALL_1, '#f0d000', 0, -2);
+                        this.addTitle('final-score', `Final Score: ${this.playerScore}`, TITLE_FONT_SIZE_MEDIUM_1, '#00e0d0', 0, 0);
                         this.gameState = 'score-card';
                     }
                     break;
@@ -282,8 +287,8 @@ class Game
                         this.restartCoolDown = true;
                         tickCounters[0].start();
                         this.clearCanvas();
-                        this.addTitle('fixed', 'Totally Not Galaga', 50, '#e00000', 0, -5);
-                        this.addTitle('fixed', 'Press Enter to Start', 30, '#f0d000', 0, 1);
+                        this.addTitle('fixed', 'Totally Not Galaga', TITLE_FONT_SIZE_BIG_1, '#e00000', 0, -5);
+                        this.addTitle('fixed', 'Press Enter to Start', TITLE_FONT_SIZE_MEDIUM_1, '#f0d000', 0, 1);
                         location.reload();
                         this.gameState = 'menu';
                     }
@@ -299,7 +304,7 @@ class Game
                             this.gameState = 'win';
                             this.bonus += WIN_BONUS;
                             this.clearCanvas();
-                            this.addTitle('fixed', 'You Win!', 40, '#e00000', 0, 0);
+                            this.addTitle('fixed', 'You Win!', TITLE_FONT_SIZE_BIG_1, '#e00000', 0, 0);
                         } else {
                             this.clearCanvas();
                             this.generateLevel();
@@ -314,8 +319,8 @@ class Game
                         this.playerScore += this.bonus;
                         this.checkHighScore();
                         this.clearCanvas();
-                        this.addTitle('bonus', `Bonus: ${this.bonus}`, 28, '#f0d000', 0, -2);
-                        this.addTitle('final-score', `Final Score: ${this.playerScore}`, 30, '#00e0d0', 0, 0);
+                        this.addTitle('bonus', `Bonus: ${this.bonus}`, TITLE_FONT_SIZE_SMALL_1, '#f0d000', 0, -2);
+                        this.addTitle('final-score', `Final Score: ${this.playerScore}`, TITLE_FONT_SIZE_MEDIUM_2, '#00e0d0', 0, 0);
                         this.gameState = 'score-card';
                     }
                     break;
@@ -422,7 +427,7 @@ class Game
             this.gameState = 'level-success';
             this.bonus += this.player.lives * PLAYER_LIVES_POINTS;
             this.clearCanvas();
-            this.addTitle('fixed', `Completed Wave ${this.level + 1}`, 40, '#e00000', 0, 0);
+            this.addTitle('fixed', `Completed Wave ${this.level + 1}`, TITLE_FONT_SIZE_BIG_1, '#e00000', 0, 0);
             return;
         }
 
@@ -640,7 +645,7 @@ class Game
     endGame()
     {
         this.clearCanvas();
-        this.addTitle('fixed', 'Game Over', 40, '#e00000', 0, 0);
+        this.addTitle('fixed', 'Game Over', TITLE_FONT_SIZE_BIG_1, '#e00000', 0, 0);
         this.gameState = 'game-over';
     }
 
@@ -875,7 +880,7 @@ class Enemy extends Entity
         this.startX = xPos;
         this.direction = -1;
         this.limit = 100;
-        this.moveIncrement = 10;
+        this.moveIncrement = MOVE_SPEED;
         this.currentFrameRow = 0;
         this.currentFrameCol = 6;
         this.sprite.src = this.spriteFrames[this.currentFrameRow * this.nSpriteSheetRows + this.currentFrameCol];
@@ -1166,8 +1171,8 @@ class Counter
 
 function init()
 {
-    game.addTitle('fixed', 'Totally Not Galaga', 50, '#e00000', 0, -5);
-    game.addTitle('fixed', 'Press Enter to Start', 30, '#f0d000', 0, 1);
+    game.addTitle('fixed', 'Totally Not Galaga', TITLE_FONT_SIZE_BIG_2, '#e00000', 0, -5);
+    game.addTitle('fixed', 'Press Enter to Start', TITLE_FONT_SIZE_MEDIUM_1, '#f0d000', 0, 1);
     game.update();
 
 

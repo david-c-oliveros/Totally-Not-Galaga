@@ -57,4 +57,20 @@ const LevelSet_1= [
                    [{type: 1, num: 20, rows: 2},
                     {type: 3, num: 45, rows: 3},
                     {type: 4, num: 42, rows: 3}],
+
+                   [{type: 1, num: 24, rows: 3},
+                    {type: 3, num: 45, rows: 3},
+                    {type: 4, num: 36, rows: 3}],
+
+                   [{type: 1, num: 24, rows: 3},
+                    {type: 3, num: 45, rows: 3},
+                    {type: 4, num: 39, rows: 3}],
+
+                   [{type: 1, num: 24, rows: 3},
+                    {type: 3, num: 45, rows: 3},
+                    {type: 4, num: 42, rows: 3}],
+
+                   [{type: 1, num: 27, rows: 3},
+                    {type: 3, num: 45, rows: 3},
+                    {type: 4, num: 42, rows: 3}],
                   ];
