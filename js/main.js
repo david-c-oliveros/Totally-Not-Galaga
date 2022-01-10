@@ -161,7 +161,7 @@ class Game
             tickCounters.push(c);
         }
 
-        this.levelGen = DemoLevels;
+        this.levelGen = LevelSet_1;
         this.explosions = [];
         this.playerProjectiles = [];
         this.enemyProjectiles = [];
